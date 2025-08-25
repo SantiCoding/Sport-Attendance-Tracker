@@ -1179,8 +1179,7 @@ export default function TennisTracker() {
                         }
                       }}
                       size="sm"
-                      variant="destructive"
-                      className="bg-red-500/20 hover:bg-red-500/30 border-red-400/30 text-red-300"
+                      className="glass-delete-button"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -1791,8 +1790,7 @@ export default function TennisTracker() {
                                     <Button
                                       onClick={() => deleteStudent(student.id)}
                                       size="sm"
-                                      variant="destructive"
-                                      className="bg-red-500/20 hover:bg-red-500/30 border-red-400/30 text-red-300 p-2"
+                                      className="glass-delete-button p-2"
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -1866,10 +1864,9 @@ export default function TennisTracker() {
                                       }}
                                       disabled={group.studentIds.length > 0}
                                       className={cn(
-                                        "glass-button text-primary-white",
                                         group.studentIds.length > 0
-                                          ? "opacity-50 cursor-not-allowed"
-                                          : "hover:bg-red-500/20",
+                                          ? "glass-button text-primary-white opacity-50 cursor-not-allowed"
+                                          : "glass-delete-button",
                                       )}
                                     >
                                       <Trash2 className="h-4 w-4" />
@@ -2543,8 +2540,7 @@ export default function TennisTracker() {
                                         toast("🗑️ Session deleted successfully", "success")
                                       }}
                                       size="sm"
-                                      variant="destructive"
-                                      className="bg-red-500/20 hover:bg-red-500/30 border-red-400/30 text-red-300"
+                                      className="glass-delete-button"
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -2632,8 +2628,7 @@ export default function TennisTracker() {
                                   <Button
                                     onClick={() => deleteArchivedTerm(term.id)}
                                     size="sm"
-                                    variant="destructive"
-                                    className="bg-red-500/20 hover:bg-red-500/30 text-red-400"
+                                    className="glass-delete-button"
                                   >
                                     <Trash2 className="h-3 w-3 mr-1" />
                                     Delete
@@ -2718,9 +2713,8 @@ export default function TennisTracker() {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  variant="destructive"
                   disabled={profiles.length <= 1}
-                  className="bg-red-500/20 hover:bg-red-500/30 border-red-400/30 text-red-300 min-h-[48px] w-full sm:w-auto"
+                  className="glass-delete-button min-h-[48px] w-full sm:w-auto"
                 >
                   Delete Profile
                 </Button>
@@ -2739,7 +2733,7 @@ export default function TennisTracker() {
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={deleteProfile}
-                    className="bg-red-500/20 hover:bg-red-500/30 border-red-400/30 text-red-300 min-h-[48px] w-full sm:w-auto"
+                    className="glass-delete-button min-h-[48px] w-full sm:w-auto"
                   >
                     Delete Profile
                   </AlertDialogAction>

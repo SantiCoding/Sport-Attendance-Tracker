@@ -112,7 +112,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   color: white;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .glass-popup {
@@ -122,7 +122,32 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   color: white;
-  border-radius: 12px;
+  border-radius: 16px;
+}
+
+/* Glassy delete button styling */
+.glass-delete-button {
+  background: rgba(239, 68, 68, 0.15);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  box-shadow: 0 2px 16px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(239, 68, 68, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  color: #fca5a5;
+  border-radius: 8px;
+}
+
+.glass-delete-button:hover {
+  background: rgba(239, 68, 68, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 24px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(239, 68, 68, 0.15);
+  color: #fecaca;
+}
+
+.glass-delete-button:active {
+  transform: translateY(0);
 }
 
 /* Text Color Classes */

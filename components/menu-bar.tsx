@@ -120,21 +120,28 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                         damping: 30,
                       }}
                     >
+                      {/* Glowing indicator that fades into the tab color */}
                       <div 
                         className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-t-full"
                         style={{ backgroundColor: item.color }}
                       >
+                        {/* Multiple glow layers for enhanced effect */}
                         <div 
                           className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2"
-                          style={{ backgroundColor: `${item.color}20` }}
+                          style={{ backgroundColor: `${item.color}30` }}
                         />
                         <div 
                           className="absolute w-8 h-6 rounded-full blur-md -top-1"
-                          style={{ backgroundColor: `${item.color}20` }}
+                          style={{ backgroundColor: `${item.color}25` }}
                         />
                         <div 
                           className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2"
                           style={{ backgroundColor: `${item.color}20` }}
+                        />
+                        {/* Additional glow for more intensity */}
+                        <div 
+                          className="absolute w-16 h-8 rounded-full blur-lg -top-3 -left-4"
+                          style={{ backgroundColor: `${item.color}15` }}
                         />
                       </div>
                     </motion.div>
