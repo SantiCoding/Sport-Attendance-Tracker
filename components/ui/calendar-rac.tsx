@@ -1,23 +1,43 @@
 "use client";
 
 import { Calendar as AriaCalendar } from "react-aria-components";
-import { getLocalTimeZone, today } from "@internationalized/date";
-import { useState } from "react";
+import { getLocalTimeZone, today, CalendarDate } from "@internationalized/date";
+import { useState, useEffect } from "react";
 import type { DateValue } from "react-aria-components";
 import { cn } from "@/lib/utils";
 
 interface CalendarProps {
-  value?: DateValue | null;
-  onChange?: (date: DateValue | null) => void;
+  value?: Date | null;
+  onChange?: (date: Date | null) => void;
   className?: string;
 }
 
 function Calendar({ value, onChange, className }: CalendarProps) {
-  const [date, setDate] = useState<DateValue | null>(value || today(getLocalTimeZone()));
+  // Convert Date to CalendarDate for React Aria
+  const convertToCalendarDate = (date: Date | null): DateValue | null => {
+    if (!date) return null;
+    return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  };
+
+  // Convert CalendarDate back to Date
+  const convertToDate = (calendarDate: DateValue | null): Date | null => {
+    if (!calendarDate) return null;
+    return new Date(calendarDate.year, calendarDate.month - 1, calendarDate.day);
+  };
+
+  const [date, setDate] = useState<DateValue | null>(
+    value ? convertToCalendarDate(value) : today(getLocalTimeZone())
+  );
+
+  // Update internal state when prop changes
+  useEffect(() => {
+    setDate(value ? convertToCalendarDate(value) : today(getLocalTimeZone()));
+  }, [value]);
 
   const handleDateChange = (newDate: DateValue | null) => {
     setDate(newDate);
-    onChange?.(newDate);
+    const convertedDate = convertToDate(newDate);
+    onChange?.(convertedDate);
   };
 
   return (
