@@ -1,11 +1,9 @@
 "use client";
 
-import { Calendar as AriaCalendar } from "react-aria-components";
-import { getLocalTimeZone, today, CalendarDate } from "@internationalized/date";
 import { useState, useEffect } from "react";
-import type { DateValue } from "react-aria-components";
 import { cn } from "@/lib/utils";
-import "react-aria-components/styles.css";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CalendarProps {
   value?: Date | null;
@@ -14,81 +12,132 @@ interface CalendarProps {
 }
 
 function Calendar({ value, onChange, className }: CalendarProps) {
-  // Convert Date to CalendarDate for React Aria
-  const convertToCalendarDate = (date: Date | null): DateValue | null => {
-    if (!date) return null;
-    return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
-  };
+  const [currentDate, setCurrentDate] = useState(value || new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(value || null);
 
-  // Convert CalendarDate back to Date
-  const convertToDate = (calendarDate: DateValue | null): Date | null => {
-    if (!calendarDate) return null;
-    return new Date(calendarDate.year, calendarDate.month - 1, calendarDate.day);
-  };
-
-  const [date, setDate] = useState<DateValue | null>(
-    value ? convertToCalendarDate(value) : today(getLocalTimeZone())
-  );
-
-  // Update internal state when prop changes
   useEffect(() => {
-    setDate(value ? convertToCalendarDate(value) : today(getLocalTimeZone()));
+    if (value) {
+      setCurrentDate(value);
+      setSelectedDate(value);
+    }
   }, [value]);
 
-  const handleDateChange = (newDate: DateValue | null) => {
-    setDate(newDate);
-    const convertedDate = convertToDate(newDate);
-    onChange?.(convertedDate);
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    return { daysInMonth, startingDayOfWeek };
   };
+
+  const getPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const getNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const handleDateClick = (day: number) => {
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    setSelectedDate(newDate);
+    onChange?.(newDate);
+  };
+
+  const isToday = (day: number) => {
+    const today = new Date();
+    return (
+      day === today.getDate() &&
+      currentDate.getMonth() === today.getMonth() &&
+      currentDate.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const isSelected = (day: number) => {
+    if (!selectedDate) return false;
+    return (
+      day === selectedDate.getDate() &&
+      currentDate.getMonth() === selectedDate.getMonth() &&
+      currentDate.getFullYear() === selectedDate.getFullYear()
+    );
+  };
+
+  const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentDate);
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
     <div className={cn("glass-card rounded-lg border border-white/10 p-4 text-white", className)}>
-      <style jsx>{`
-        :global(.react-aria-Calendar) {
-          color: white;
-        }
-        :global(.react-aria-Calendar .react-aria-CalendarCell) {
-          color: white;
-          border-radius: 8px;
-          padding: 8px;
-          margin: 2px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        :global(.react-aria-Calendar .react-aria-CalendarCell:hover) {
-          background: rgba(255, 255, 255, 0.1);
-        }
-        :global(.react-aria-Calendar .react-aria-CalendarCell[data-selected]) {
-          background: rgba(255, 255, 255, 0.2);
-          color: white;
-        }
-        :global(.react-aria-Calendar .react-aria-CalendarCell[data-outside-month]) {
-          color: rgba(255, 255, 255, 0.3);
-        }
-        :global(.react-aria-Calendar .react-aria-CalendarGrid) {
-          color: white;
-        }
-        :global(.react-aria-Calendar .react-aria-CalendarHeader) {
-          color: white;
-        }
-        :global(.react-aria-Calendar .react-aria-CalendarHeader button) {
-          color: white;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 6px;
-          padding: 4px 8px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        :global(.react-aria-Calendar .react-aria-CalendarHeader button:hover) {
-          background: rgba(255, 255, 255, 0.2);
-        }
-      `}</style>
-      <AriaCalendar 
-        value={date} 
-        onChange={handleDateChange}
-        className="w-full"
-      />
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={getPreviousMonth}
+          className="glass-button p-2 h-auto"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <h2 className="text-lg font-semibold text-primary-white">
+          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+        </h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={getNextMonth}
+          className="glass-button p-2 h-auto"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Days of Week Header */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {daysOfWeek.map((day) => (
+          <div
+            key={day}
+            className="text-center text-sm font-medium text-secondary-white py-2"
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {/* Empty cells for days before the first day of the month */}
+        {Array.from({ length: startingDayOfWeek }, (_, i) => (
+          <div key={`empty-${i}`} className="h-10" />
+        ))}
+
+        {/* Days of the month */}
+        {Array.from({ length: daysInMonth }, (_, i) => {
+          const day = i + 1;
+          return (
+            <Button
+              key={day}
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDateClick(day)}
+              className={cn(
+                "h-10 w-full p-0 text-sm font-medium transition-all duration-200",
+                isToday(day) && "bg-blue-500/20 text-blue-300 border border-blue-400/30",
+                isSelected(day) && "bg-white/20 text-white border border-white/30",
+                !isToday(day) && !isSelected(day) && "text-primary-white hover:bg-white/10 hover:text-white"
+              )}
+            >
+              {day}
+            </Button>
+          );
+        })}
+      </div>
     </div>
   );
 }
