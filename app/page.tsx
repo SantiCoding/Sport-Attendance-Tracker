@@ -1234,11 +1234,11 @@ export default function TennisTracker() {
                 </div>
                 {currentProfile && (
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30">
+                    <Badge className="glass-card text-primary-white border-white/20">
                       <Users className="h-3 w-3 mr-1" />
                       {currentProfile.students.length} Students
                     </Badge>
-                    <Badge className="bg-green-500/20 text-green-300 border-green-400/30">
+                    <Badge className="glass-card text-primary-white border-white/20">
                       <Users className="h-3 w-3 mr-1" />
                       {currentProfile.groups.length} Groups
                     </Badge>
@@ -1785,7 +1785,7 @@ export default function TennisTracker() {
                                       {studentGroups.map((group) => (
                                         <Badge 
                                           key={group.id} 
-                                          className="text-xs bg-blue-500/20 text-blue-300 border-blue-400/30 hover:bg-blue-500/30 transition-colors"
+                                          className="text-xs glass-card text-primary-white border-white/20 hover:bg-white/10 transition-colors"
                                         >
                                           {group.name}
                                         </Badge>
