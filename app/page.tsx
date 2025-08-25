@@ -2218,9 +2218,6 @@ export default function TennisTracker() {
                               <div className="text-sm text-secondary-white">
                                 {studentGroups.map((g) => g.name).join(", ") || "No groups"}
                               </div>
-                              <div className="text-xs text-tertiary-white mt-1">
-                                {student.remainingSessions} sessions left • {student.makeupSessions} pending makeups
-                              </div>
                             </div>
                             <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                               <StudentDialog
