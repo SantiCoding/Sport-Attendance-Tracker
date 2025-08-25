@@ -1447,10 +1447,10 @@ export default function TennisTracker() {
                                         size="sm"
                                         onClick={() => toggleAttendanceSelection(studentId, "present")}
                                         className={cn(
-                                          "glass-button transition-all duration-200",
+                                          "glass-button transition-all duration-300 ease-in-out transform",
                                           attendanceSelections[studentId] === "present"
-                                            ? "border-2 border-green-400 ring-2 ring-green-400 text-green-400 font-medium shadow-lg"
-                                            : "bg-green-500/20 hover:bg-green-500/30 border-transparent text-primary-white",
+                                            ? "bg-green-500/30 border-2 border-green-400 text-green-300 font-semibold shadow-lg shadow-green-500/20 scale-105"
+                                            : "bg-green-500/20 hover:bg-green-500/30 border border-green-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
                                         <CheckCircle className="h-4 w-4 mr-1" />
@@ -1460,10 +1460,10 @@ export default function TennisTracker() {
                                         size="sm"
                                         onClick={() => toggleAttendanceSelection(studentId, "absent")}
                                         className={cn(
-                                          "glass-button transition-all duration-200",
+                                          "glass-button transition-all duration-300 ease-in-out transform",
                                           attendanceSelections[studentId] === "absent"
-                                            ? "border-2 border-red-400 ring-2 ring-red-400 text-red-400 font-medium shadow-lg"
-                                            : "bg-red-500/20 hover:bg-red-500/30 border-transparent text-primary-white",
+                                            ? "bg-red-500/30 border-2 border-red-400 text-red-300 font-semibold shadow-lg shadow-red-500/20 scale-105"
+                                            : "bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
                                         <XCircle className="h-4 w-4 mr-1" />
