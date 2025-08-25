@@ -2248,15 +2248,10 @@ export default function TennisTracker() {
                                 <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center">
                                   <User className="h-6 w-6 text-blue-400" />
                                 </div>
-                                <div className="flex flex-wrap gap-2">
-                                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30">
-                                    {student.remainingSessions} remaining
-                                  </Badge>
-                                  {student.makeupSessions > 0 && (
-                                    <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30">
-                                      {student.makeupSessions} make-ups
-                                    </Badge>
-                                  )}
+                                <div className="flex flex-col gap-1">
+                                  <p className="text-sm text-secondary-white">
+                                    Prepaid: {student.prepaidSessions} • Remaining: {student.remainingSessions} • Make-ups: {student.makeupSessions}
+                                  </p>
                                 </div>
                               </div>
 
