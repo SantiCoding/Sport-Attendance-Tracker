@@ -1444,32 +1444,42 @@ export default function TennisTracker() {
                                         Remaining: {student.remainingSessions} | Make-ups: {student.makeupSessions}
                                       </p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-1 sm:gap-2">
                                       <Button
                                         size="sm"
-                                        onClick={() => toggleAttendanceSelection(studentId, "present")}
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          toggleAttendanceSelection(studentId, "present")
+                                        }}
                                         className={cn(
-                                          "glass-button transition-all duration-300 ease-in-out transform",
+                                          "glass-button transition-all duration-200 ease-in-out transform text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2",
                                           attendanceSelections[studentId] === "present"
                                             ? "bg-green-500/20 border-2 border-green-400 text-green-300 font-semibold ring-2 ring-green-400/40"
                                             : "bg-green-500/20 hover:bg-green-500/30 border border-green-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
-                                        <CheckCircle className="h-4 w-4 mr-1" />
-                                        Present
+                                        <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                        <span className="hidden sm:inline">Present</span>
+                                        <span className="sm:hidden">P</span>
                                       </Button>
                                       <Button
                                         size="sm"
-                                        onClick={() => toggleAttendanceSelection(studentId, "absent")}
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          toggleAttendanceSelection(studentId, "absent")
+                                        }}
                                         className={cn(
-                                          "glass-button transition-all duration-300 ease-in-out transform",
+                                          "glass-button transition-all duration-200 ease-in-out transform text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2",
                                           attendanceSelections[studentId] === "absent"
                                             ? "bg-red-500/20 border-2 border-red-400 text-red-300 font-semibold ring-2 ring-red-400/40"
                                             : "bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
-                                        <XCircle className="h-4 w-4 mr-1" />
-                                        Absent
+                                        <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                        <span className="hidden sm:inline">Absent</span>
+                                        <span className="sm:hidden">A</span>
                                       </Button>
                                     </div>
                                   </div>

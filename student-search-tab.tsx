@@ -51,6 +51,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("name")
   const [filterBy, setFilterBy] = useState("all_students")
+  const [expandedStudents, setExpandedStudents] = useState<Set<string>>(new Set())
 
   const filteredAndSortedStudents = useMemo(() => {
     if (!profileData) return []
@@ -127,6 +128,18 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
     })
 
     toast(`✅ ${student.name} has been removed`, "success")
+  }
+
+  const toggleStudentExpansion = (studentId: string) => {
+    setExpandedStudents(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(studentId)) {
+        newSet.delete(studentId)
+      } else {
+        newSet.add(studentId)
+      }
+      return newSet
+    })
   }
 
   if (!profileData) {
@@ -241,7 +254,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
               <Card key={student.id} className="glass-card">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 cursor-pointer" onClick={() => toggleStudentExpansion(student.id)}>
                       <div className="flex items-center gap-3 mb-3">
                         <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center">
                           <User className="h-5 w-5 text-blue-400" />
@@ -267,59 +280,70 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                        <div className="glass-card p-3">
-                          <p className="text-secondary-white text-sm">Prepaid Sessions</p>
-                          <p className="font-semibold text-primary-white">{student.prepaidSessions}</p>
-                        </div>
-                        <div className="glass-card p-3">
-                          <p className="text-secondary-white text-sm">Remaining Sessions</p>
-                          <p className="font-semibold text-primary-white">{student.remainingSessions}</p>
-                        </div>
-                        <div className="glass-card p-3">
-                          <p className="text-secondary-white text-sm">Make-up Sessions</p>
-                          <p className="font-semibold text-primary-white">{student.makeupSessions}</p>
-                        </div>
-                      </div>
-
-                      {student.notes && (
-                        <div className="mb-3">
-                          <p className="text-secondary-white text-sm mb-1">Notes:</p>
-                          <p className="text-primary-white text-sm bg-white/5 rounded p-2">{student.notes}</p>
+                      {expandedStudents.has(student.id) && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                          <div className="glass-card p-3">
+                            <p className="text-secondary-white text-sm">Prepaid Sessions</p>
+                            <p className="font-semibold text-primary-white">{student.prepaidSessions}</p>
+                          </div>
+                          <div className="glass-card p-3">
+                            <p className="text-secondary-white text-sm">Remaining Sessions</p>
+                            <p className="font-semibold text-primary-white">{student.remainingSessions}</p>
+                          </div>
+                          <div className="glass-card p-3">
+                            <p className="text-secondary-white text-sm">Make-up Sessions</p>
+                            <p className="font-semibold text-primary-white">{student.makeupSessions}</p>
+                          </div>
                         </div>
                       )}
 
-                      {studentGroups.length > 0 && (
-                        <div>
-                          <p className="text-secondary-white text-sm mb-2 flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            Groups ({studentGroups.length})
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {studentGroups.map((group) => (
-                              <Badge key={group.id} className="bg-blue-500/20 text-blue-300 border-blue-400/30">
-                                {group.name}
-                                {group.dayOfWeek && group.time && (
-                                  <span className="ml-1 opacity-75">
-                                    • {group.dayOfWeek} {group.time}
-                                  </span>
-                                )}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
+                      {expandedStudents.has(student.id) && (
+                        <>
+                          {student.notes && (
+                            <div className="mb-3">
+                              <p className="text-secondary-white text-sm mb-1">Notes:</p>
+                              <p className="text-primary-white text-sm bg-white/5 rounded p-2">{student.notes}</p>
+                            </div>
+                          )}
+
+                          {studentGroups.length > 0 && (
+                            <div>
+                              <p className="text-secondary-white text-sm mb-2 flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                Groups ({studentGroups.length})
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {studentGroups.map((group) => (
+                                  <Badge key={group.id} className="bg-blue-500/20 text-blue-300 border-blue-400/30">
+                                    {group.name}
+                                    {group.dayOfWeek && group.time && (
+                                      <span className="ml-1 opacity-75">
+                                        • {group.dayOfWeek} {group.time}
+                                      </span>
+                                    )}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
 
                     <div className="flex gap-2 ml-4">
                       <StudentDialog profileData={profileData} onUpdateProfile={updateProfile} student={student}>
-                        <Button size="sm" className="glass-button text-primary-white">
+                        <Button 
+                          size="sm" 
+                          className="glass-button text-primary-white"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                       </StudentDialog>
                       <Button
                         size="sm"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           console.log("🗑️ Delete button clicked - using glass-delete-button class");
                           deleteStudent(student.id);
                         }}
