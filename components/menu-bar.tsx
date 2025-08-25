@@ -80,7 +80,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   // Use enhanced mobile navigation for mobile devices
   if (isMobile) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-[9999] bg-black/20 backdrop-blur-md">
+      <div className="relative z-[9999] bg-black/20 backdrop-blur-md my-4">
         <div className="flex items-center justify-center p-2">
           <div className="flex items-center gap-2 glass-card py-1 px-2 rounded-full shadow-lg border border-white/10 w-full overflow-visible">
             {menuItems.map((item) => {

@@ -1176,7 +1176,7 @@ export default function TennisTracker() {
   }
 
   return (
-    <div className="min-h-screen pb-24 pt-20 animate-fade-in-up">
+    <div className="min-h-screen pb-24 animate-fade-in-up">
       {/* Header */}
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
@@ -1247,6 +1247,13 @@ export default function TennisTracker() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* Mobile Navigation - positioned between Attendance Tracker and main content */}
+      <div className="px-4">
+        <div className="max-w-7xl mx-auto">
+          <MenuBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       </div>
 
@@ -2827,8 +2834,6 @@ export default function TennisTracker() {
         </DialogContent>
       </Dialog>
 
-      {/* Bottom Navigation */}
-      <MenuBar activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   )
 }
