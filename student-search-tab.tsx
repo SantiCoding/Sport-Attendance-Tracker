@@ -261,20 +261,14 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                         </div>
                         <div>
                           <h3 className="font-semibold text-primary-white text-lg">{student.name}</h3>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            <Badge
-                              className={
-                                student.remainingSessions > 0
-                                  ? "bg-green-500/20 text-green-300 border-green-400/30"
-                                  : "bg-red-500/20 text-red-300 border-red-400/30"
-                              }
-                            >
-                              {student.remainingSessions} sessions left
-                            </Badge>
-                            {student.makeupSessions > 0 && (
-                              <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30">
-                                {student.makeupSessions} make-ups
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {studentGroups.map((group) => (
+                              <Badge key={group.id} className="text-xs glass-card text-primary-white border-white/20">
+                                {group.name}
                               </Badge>
+                            ))}
+                            {studentGroups.length === 0 && (
+                              <span className="text-xs text-tertiary-white">No groups assigned</span>
                             )}
                           </div>
                         </div>
