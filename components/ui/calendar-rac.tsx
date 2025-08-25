@@ -1,6 +1,9 @@
 "use client";
 
+import { Calendar as AriaCalendar } from "react-aria-components";
+import { getLocalTimeZone, today, CalendarDate } from "@internationalized/date";
 import { useState, useEffect } from "react";
+import type { DateValue } from "react-aria-components";
 import { cn } from "@/lib/utils";
 
 interface CalendarProps {
@@ -10,115 +13,40 @@ interface CalendarProps {
 }
 
 function Calendar({ value, onChange, className }: CalendarProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(value || new Date());
+  // Convert Date to CalendarDate for React Aria
+  const convertToCalendarDate = (date: Date | null): DateValue | null => {
+    if (!date) return null;
+    return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  };
 
+  // Convert CalendarDate back to Date
+  const convertToDate = (calendarDate: DateValue | null): Date | null => {
+    if (!calendarDate) return null;
+    return new Date(calendarDate.year, calendarDate.month - 1, calendarDate.day);
+  };
+
+  const [date, setDate] = useState<DateValue | null>(
+    value ? convertToCalendarDate(value) : today(getLocalTimeZone())
+  );
+
+  // Update internal state when prop changes
   useEffect(() => {
-    setSelectedDate(value || new Date());
+    setDate(value ? convertToCalendarDate(value) : today(getLocalTimeZone()));
   }, [value]);
 
-  const handleDateChange = (newDate: Date | null) => {
-    setSelectedDate(newDate);
-    onChange?.(newDate);
+  const handleDateChange = (newDate: DateValue | null) => {
+    setDate(newDate);
+    const convertedDate = convertToDate(newDate);
+    onChange?.(convertedDate);
   };
-
-  // Simple date picker implementation
-  const today = new Date();
-  const currentMonth = selectedDate ? selectedDate.getMonth() : today.getMonth();
-  const currentYear = selectedDate ? selectedDate.getFullYear() : today.getFullYear();
-
-  const getDaysInMonth = (month: number, year: number) => {
-    return new Date(year, month + 1, 0).getDate();
-  };
-
-  const getFirstDayOfMonth = (month: number, year: number) => {
-    return new Date(year, month, 1).getDay();
-  };
-
-  const daysInMonth = getDaysInMonth(currentMonth, currentYear);
-  const firstDayOfMonth = getFirstDayOfMonth(currentMonth, currentYear);
-
-  const goToPreviousMonth = () => {
-    const newDate = new Date(currentYear, currentMonth - 1, 1);
-    handleDateChange(newDate);
-  };
-
-  const goToNextMonth = () => {
-    const newDate = new Date(currentYear, currentMonth + 1, 1);
-    handleDateChange(newDate);
-  };
-
-  const selectDate = (day: number) => {
-    const newDate = new Date(currentYear, currentMonth, day);
-    handleDateChange(newDate);
-  };
-
-  const isToday = (day: number) => {
-    const date = new Date(currentYear, currentMonth, day);
-    return date.toDateString() === today.toDateString();
-  };
-
-  const isSelected = (day: number) => {
-    if (!selectedDate) return false;
-    const date = new Date(currentYear, currentMonth, day);
-    return date.toDateString() === selectedDate.toDateString();
-  };
-
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
 
   return (
     <div className={cn("glass-card rounded-lg border border-white/10 p-2 text-white", className)}>
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={goToPreviousMonth}
-          className="glass-button p-2 rounded-md hover:bg-white/20"
-        >
-          ←
-        </button>
-        <h2 className="text-lg font-semibold">
-          {monthNames[currentMonth]} {currentYear}
-        </h2>
-        <button
-          onClick={goToNextMonth}
-          className="glass-button p-2 rounded-md hover:bg-white/20"
-        >
-          →
-        </button>
-      </div>
-
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-          <div key={day} className="text-center text-sm text-white/70 p-2">
-            {day}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-1">
-        {Array.from({ length: firstDayOfMonth }, (_, i) => (
-          <div key={`empty-${i}`} className="p-2" />
-        ))}
-        
-        {Array.from({ length: daysInMonth }, (_, i) => {
-          const day = i + 1;
-          return (
-            <button
-              key={day}
-              onClick={() => selectDate(day)}
-              className={cn(
-                "p-2 rounded-md text-sm transition-colors",
-                isToday(day) && "bg-white/20 font-semibold",
-                isSelected(day) && "bg-blue-500/50 text-white font-semibold",
-                !isToday(day) && !isSelected(day) && "hover:bg-white/10"
-              )}
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
+      <AriaCalendar 
+        value={date} 
+        onChange={handleDateChange}
+        className="w-full"
+      />
     </div>
   );
 }

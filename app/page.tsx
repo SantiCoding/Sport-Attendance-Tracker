@@ -965,7 +965,15 @@ export default function TennisTracker() {
 
     return (currentProfile.attendanceRecords ?? [])
       .filter((record) => record.studentId === studentId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => {
+        const dateA = new Date(a.date).getTime()
+        const dateB = new Date(b.date).getTime()
+        // Handle invalid dates by putting them at the end
+        if (isNaN(dateA) && isNaN(dateB)) return 0
+        if (isNaN(dateA)) return 1
+        if (isNaN(dateB)) return -1
+        return dateB - dateA
+      })
       .slice(0, 10) // Show last 10 sessions
   }
 
