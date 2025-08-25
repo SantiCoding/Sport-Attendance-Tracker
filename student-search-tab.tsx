@@ -320,7 +320,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                       <Button
                         size="sm"
                         onClick={() => deleteStudent(student.id)}
-                        className="bg-red-500/20 hover:bg-red-500/30 border-red-400/30 text-red-300"
+                        className="glass-delete-button"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
