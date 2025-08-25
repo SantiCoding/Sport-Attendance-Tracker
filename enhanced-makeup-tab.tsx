@@ -127,6 +127,49 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
     toast("✅ Make-up session scheduled successfully", "success")
   }
 
+  const deletePendingSession = (sessionId: string) => {
+    const target = (profileData.makeupSessions ?? []).find((s) => s.id === sessionId)
+    if (!target) return
+
+    const updatedSessions = (profileData.makeupSessions ?? []).filter((s) => s.id !== sessionId)
+
+    // Decrease student's makeup count
+    const updatedStudents = (profileData.students ?? []).map((s) =>
+      s.id === target.studentId ? { ...s, makeupSessions: Math.max(0, s.makeupSessions - 1) } : s,
+    )
+
+    updateProfile({
+      ...profileData,
+      students: updatedStudents,
+      makeupSessions: updatedSessions,
+    })
+
+    toast("🗑️ Pending make-up deleted", "success")
+  }
+
+  const completePendingSessionQuick = (sessionId: string) => {
+    const target = (profileData.makeupSessions ?? []).find((s) => s.id === sessionId)
+    if (!target) return
+
+    const updatedSessions = (profileData.makeupSessions ?? []).map((s) =>
+      s.id === sessionId
+        ? { ...s, status: "completed" as const, completedDate: new Date().toISOString() }
+        : s,
+    )
+
+    const updatedStudents = (profileData.students ?? []).map((s) =>
+      s.id === target.studentId ? { ...s, makeupSessions: Math.max(0, s.makeupSessions - 1) } : s,
+    )
+
+    updateProfile({
+      ...profileData,
+      students: updatedStudents,
+      makeupSessions: updatedSessions,
+    })
+
+    toast("✅ Make-up marked complete", "success")
+  }
+
   const completeSession = () => {
     if (!completingSession) return
 
@@ -358,6 +401,22 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
                           </div>
                         </DialogContent>
                       </Dialog>
+                      <div className="flex gap-2 ml-2">
+                        <Button
+                          size="sm"
+                          className="glass-button text-primary-white bg-green-500/20 hover:bg-green-500/30"
+                          onClick={() => completePendingSessionQuick(session.id)}
+                        >
+                          Confirm
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="glass-delete-button"
+                          onClick={() => deletePendingSession(session.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )

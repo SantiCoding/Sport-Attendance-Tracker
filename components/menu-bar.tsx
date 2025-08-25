@@ -82,7 +82,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="flex items-center justify-center p-2">
-          <div className="flex items-center gap-2 glass-card py-2 px-3 rounded-full shadow-lg border border-white/10 w-full max-w-md">
+          <div className="flex items-center gap-2 glass-card py-1 px-2 rounded-full shadow-lg border border-white/10 w-full overflow-visible">
             {menuItems.map((item) => {
               const isActive = activeTab === item.href
 
@@ -90,7 +90,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                 <motion.div
                   key={item.href}
                   className={cn(
-                    "relative cursor-pointer text-sm font-semibold px-4 py-2 rounded-full transition-all duration-300 flex-1",
+                    "relative cursor-pointer text-sm font-semibold px-3 py-1 rounded-full transition-all duration-300 flex-1",
                     "text-white/80 hover:text-white",
                     isActive && "text-white",
                   )}
@@ -101,7 +101,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                     <span className="text-base">
                       {item.icon}
                     </span>
-                    <span className="text-xs leading-tight">
+                    <span className="text-[11px] leading-tight">
                       {item.label}
                     </span>
                   </span>
@@ -152,8 +152,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                     </motion.div>
                   )}
                 </motion.div>
-              )
-            })}
+              )})}
           </div>
         </div>
       </div>
