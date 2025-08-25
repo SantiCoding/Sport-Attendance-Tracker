@@ -1176,7 +1176,7 @@ export default function TennisTracker() {
   }
 
   return (
-    <div className="min-h-screen pb-24 animate-fade-in-up">
+    <div className="min-h-screen pb-32 animate-fade-in-up">
       {/* Header */}
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
@@ -1247,13 +1247,6 @@ export default function TennisTracker() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </div>
-
-      {/* Mobile Navigation - positioned between Attendance Tracker and main content */}
-      <div className="px-4">
-        <div className="max-w-7xl mx-auto">
-          <MenuBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       </div>
 
@@ -2633,7 +2626,7 @@ export default function TennisTracker() {
                                                 {record.timeAdjustmentAmount && record.timeAdjustmentType && (
                                                   <div className="text-xs text-blue-400 bg-blue-500/10 rounded px-2 py-1">
                                                     <div className="font-medium">
-                                                      {record.timeAdjustmentType === "more" ? "+" : "-"}{record.timeAdjustmentAmount} min
+                                                      {record.timeAdjustmentType === "more" ? "+" : "-"}{record.timeAdjustmentAmount}
                                                     </div>
                                                     {record.timeAdjustmentReason && (
                                                       <div className="text-blue-300/80 text-[10px]">
@@ -2834,6 +2827,8 @@ export default function TennisTracker() {
         </DialogContent>
       </Dialog>
 
+      {/* Floating Bottom Navigation */}
+      <MenuBar activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   )
 }
