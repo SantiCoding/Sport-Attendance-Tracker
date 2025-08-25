@@ -120,7 +120,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                         damping: 30,
                       }}
                     >
-                      {/* Enhanced glowing indicator that matches the second image */}
+                      {/* Top indicator that matches the tab color */}
                       <div 
                         className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-t-full"
                         style={{ backgroundColor: item.color }}

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Calendar } from "@/components/ui/calendar"
+import { Calendar } from "@/components/ui/calendar-rac"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -1261,39 +1261,9 @@ export default function TennisTracker() {
                         <Label className="text-secondary-white">Select Date</Label>
                         <div className="mt-2">
                           <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={(date) => date && setSelectedDate(date)}
+                            value={selectedDate}
+                            onChange={(date) => date && setSelectedDate(date)}
                             className="glass-card p-4 text-primary-white w-full"
-                            classNames={{
-                              months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 w-full",
-                              month: "space-y-4 w-full",
-                              caption: "flex justify-between items-center pt-1 relative w-full text-primary-white px-2",
-                              caption_label: "text-base font-medium text-primary-white flex-1 text-center",
-                              nav: "flex items-center justify-between w-full absolute inset-0 pointer-events-none",
-                              nav_button: cn(
-                                "h-8 w-8 bg-transparent p-0 opacity-70 hover:opacity-100 text-primary-white hover:bg-white/10 rounded-md pointer-events-auto glass-button",
-                              ),
-                              nav_button_previous: "absolute left-0",
-                              nav_button_next: "absolute right-0",
-                              table: "w-full border-collapse space-y-1 mt-4",
-                              head_row: "flex w-full",
-                              head_cell: "text-secondary-white rounded-md flex-1 font-normal text-[0.8rem] text-center",
-                              row: "flex w-full mt-2",
-                              cell: "flex-1 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-white/10 [&:has([aria-selected])]:bg-white/10 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                              day: cn(
-                                "h-10 w-full p-0 font-normal aria-selected:opacity-100 text-primary-white hover:bg-white/10 rounded-md mx-auto",
-                              ),
-                              day_range_end: "day-range-end",
-                              day_selected:
-                                "bg-blue-500/50 text-white hover:bg-blue-500/60 focus:bg-blue-500/50 focus:text-white border-2 border-blue-400 font-semibold",
-                              day_today: "bg-white/20 text-primary-white font-semibold border border-white/30",
-                              day_outside:
-                                "day-outside text-tertiary-white opacity-50 aria-selected:bg-white/5 aria-selected:text-tertiary-white aria-selected:opacity-30",
-                              day_disabled: "text-tertiary-white opacity-50",
-                              day_range_middle: "aria-selected:bg-white/10 aria-selected:text-primary-white",
-                              day_hidden: "invisible",
-                            }}
                           />
                         </div>
                       </div>
