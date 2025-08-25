@@ -8,8 +8,24 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Tennis Tracker",
-  description: "Track tennis lessons and student attendance",
+  description: "Professional tennis student management system for coaches",
   generator: "v0.app",
+  manifest: "/manifest.json",
+  themeColor: "#0a0a0a",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Tennis Tracker",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: "/placeholder-logo.png",
+    shortcut: "/placeholder-logo.png",
+    apple: "/placeholder-logo.png",
+  },
 }
 
 export default function RootLayout({
@@ -19,6 +35,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Tennis Tracker" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#0a0a0a" />
+      </head>
       <body className={inter.className}>
         <ToastProvider>{children}</ToastProvider>
       </body>
