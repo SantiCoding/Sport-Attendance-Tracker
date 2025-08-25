@@ -113,7 +113,7 @@ interface CoachProfile {
 
 export default function TennisTracker() {
   // Debug log to verify the latest changes are loaded
-  console.log("🎾 Tennis Tracker - Latest version loaded with glass-delete-button styling");
+  console.log("🎾 Tennis Tracker - Latest version loaded with glass-delete-button styling - FORCE DEPLOY");
   const { toast } = useToast()
   const [profiles, setProfiles] = useState<CoachProfile[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<string>("")
