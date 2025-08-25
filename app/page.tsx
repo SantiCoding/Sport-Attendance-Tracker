@@ -2249,14 +2249,8 @@ export default function TennisTracker() {
                                   <User className="h-6 w-6 text-blue-400" />
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                  <Badge
-                                    className={
-                                      student.remainingSessions > 0
-                                        ? "bg-green-500/20 text-green-300 border-green-400/30"
-                                        : "bg-red-500/20 text-red-300 border-red-400/30"
-                                    }
-                                  >
-                                    {student.remainingSessions} sessions left
+                                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30">
+                                    {student.remainingSessions} remaining
                                   </Badge>
                                   {student.makeupSessions > 0 && (
                                     <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30">
@@ -2630,9 +2624,16 @@ export default function TennisTracker() {
                                                   {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                                                 </Badge>
                                                 {record.timeAdjustmentAmount && record.timeAdjustmentType && (
-                                                  <span className="text-xs text-blue-400">
-                                                    {record.timeAdjustmentType === "more" ? "+" : "-"}{record.timeAdjustmentAmount} min
-                                                  </span>
+                                                  <div className="text-xs text-blue-400 bg-blue-500/10 rounded px-2 py-1">
+                                                    <div className="font-medium">
+                                                      {record.timeAdjustmentType === "more" ? "+" : "-"}{record.timeAdjustmentAmount} min
+                                                    </div>
+                                                    {record.timeAdjustmentReason && (
+                                                      <div className="text-blue-300/80 text-[10px]">
+                                                        {record.timeAdjustmentReason}
+                                                      </div>
+                                                    )}
+                                                  </div>
                                                 )}
                                               </div>
                                             </div>
