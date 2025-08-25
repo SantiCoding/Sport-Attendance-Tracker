@@ -319,7 +319,10 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                       </StudentDialog>
                       <Button
                         size="sm"
-                        onClick={() => deleteStudent(student.id)}
+                        onClick={() => {
+                          console.log("🗑️ Delete button clicked - using glass-delete-button class");
+                          deleteStudent(student.id);
+                        }}
                         className="glass-delete-button"
                       >
                         <Trash2 className="h-4 w-4" />
