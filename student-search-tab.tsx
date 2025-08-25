@@ -263,7 +263,10 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                           <h3 className="font-semibold text-primary-white text-lg">{student.name}</h3>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {studentGroups.map((group) => (
-                              <Badge key={group.id} className="text-xs glass-card text-primary-white border-white/20">
+                              <Badge 
+                                key={group.id} 
+                                className="text-xs glass-card text-primary-white border-white/20 hover:bg-white/10 transition-colors"
+                              >
                                 {group.name}
                               </Badge>
                             ))}
