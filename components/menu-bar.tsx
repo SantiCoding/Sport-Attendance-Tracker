@@ -101,7 +101,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                     <span className="text-base">
                       {item.icon}
                     </span>
-                    <span className="text-[11px] leading-tight">
+                    <span className="text-[10px] leading-tight">
                       {item.label}
                     </span>
                   </span>
@@ -122,7 +122,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                     >
                       {/* Top indicator that matches the tab color */}
                       <div 
-                        className="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-t-full"
+                        className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-t-full"
                         style={{ backgroundColor: item.color }}
                       >
                         {/* Multiple glow layers for enhanced effect */}

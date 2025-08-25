@@ -335,10 +335,14 @@ export default function TennisTracker() {
   }
 
   const toggleAttendanceSelection = (studentId: string, status: "present" | "absent") => {
-    setAttendanceSelections((prev) => ({
-      ...prev,
-      [studentId]: prev[studentId] === status ? null : status,
-    }))
+    setAttendanceSelections((prev) => {
+      const newState = {
+        ...prev,
+        [studentId]: prev[studentId] === status ? null : status,
+      }
+      console.log(`Toggle ${studentId} to ${status}:`, newState)
+      return newState
+    })
   }
 
   const saveAttendance = () => {
