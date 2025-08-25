@@ -188,6 +188,10 @@ export default function TennisTracker() {
     }))
   }
 
+  const toggleStudentExpansion = (studentId: string) => {
+    setExpandedStudentId(expandedStudentId === studentId ? "" : studentId)
+  }
+
   const currentProfile = profiles.find((p) => p.id === currentProfileId) || {
     id: "",
     name: "",
@@ -1752,7 +1756,10 @@ export default function TennisTracker() {
 
                             return (
                               <div key={student.id} className="glass-card p-3">
-                                <div className="flex items-center justify-between">
+                                <div 
+                                  className="flex items-center justify-between cursor-pointer"
+                                  onClick={() => toggleStudentExpansion(student.id)}
+                                >
                                   <div className="flex-1">
                                     <h3 className="font-medium text-primary-white">{student.name}</h3>
                                     <div className="flex flex-wrap gap-1 mt-1">
@@ -1769,7 +1776,7 @@ export default function TennisTracker() {
                                       )}
                                     </div>
                                   </div>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                     <StudentDialog
                                       profileData={currentProfile}
                                       onUpdateProfile={updateProfile}
@@ -1798,6 +1805,30 @@ export default function TennisTracker() {
                                     </Button>
                                   </div>
                                 </div>
+                                {isExpanded && (
+                                  <div className="mt-3 pt-3 border-t border-white/10">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                      <div className="glass-card p-3">
+                                        <p className="text-secondary-white text-sm">Prepaid Sessions</p>
+                                        <p className="font-semibold text-primary-white">{student.prepaidSessions}</p>
+                                      </div>
+                                      <div className="glass-card p-3">
+                                        <p className="text-secondary-white text-sm">Remaining Sessions</p>
+                                        <p className="font-semibold text-primary-white">{student.remainingSessions}</p>
+                                      </div>
+                                      <div className="glass-card p-3">
+                                        <p className="text-secondary-white text-sm">Make-up Sessions</p>
+                                        <p className="font-semibold text-primary-white">{student.makeupSessions}</p>
+                                      </div>
+                                    </div>
+                                    {student.notes && (
+                                      <div className="mt-3">
+                                        <p className="text-secondary-white text-sm mb-1">Notes:</p>
+                                        <p className="text-primary-white text-sm bg-white/5 rounded p-2">{student.notes}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             )
                           })}

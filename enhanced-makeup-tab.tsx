@@ -170,24 +170,7 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
     toast("✅ Make-up marked complete", "success")
   }
 
-  const resetPendingMakeups = () => {
-    // Remove all pending make-up sessions
-    const updatedSessions = (profileData.makeupSessions ?? []).filter((s) => s.status !== "pending")
-    
-    // Reset makeup counts for all students
-    const updatedStudents = (profileData.students ?? []).map((s) => ({
-      ...s,
-      makeupSessions: 0
-    }))
 
-    updateProfile({
-      ...profileData,
-      students: updatedStudents,
-      makeupSessions: updatedSessions,
-    })
-
-    toast("🗑️ All pending make-ups cleared", "success")
-  }
 
   const completeSession = () => {
     if (!completingSession) return
@@ -313,21 +296,10 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
       {pendingSessions.length > 0 && (
         <Card className="glass-card">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-primary-white flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-yellow-400" />
-                Pending Make-ups ({pendingSessions.length})
-              </CardTitle>
-              {pendingSessions.length > 0 && (
-                <Button
-                  size="sm"
-                  onClick={resetPendingMakeups}
-                  className="glass-delete-button"
-                >
-                  Reset All
-                </Button>
-              )}
-            </div>
+            <CardTitle className="text-primary-white flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-yellow-400" />
+              Pending Make-ups ({pendingSessions.length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
