@@ -80,9 +80,9 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   // Use enhanced mobile navigation for mobile devices
   if (isMobile) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-50 mb-2">
-        <div className="flex items-center justify-center">
-          <div className="flex items-center gap-1 glass-card py-1 px-1 rounded-full shadow-lg border border-white/10">
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="flex items-center justify-center p-2">
+          <div className="flex items-center gap-2 glass-card py-2 px-3 rounded-full shadow-lg border border-white/10 w-full max-w-md">
             {menuItems.map((item) => {
               const isActive = activeTab === item.href
 
@@ -90,7 +90,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                 <motion.div
                   key={item.href}
                   className={cn(
-                    "relative cursor-pointer text-xs font-semibold px-3 py-1 rounded-full transition-all duration-300",
+                    "relative cursor-pointer text-sm font-semibold px-4 py-2 rounded-full transition-all duration-300 flex-1",
                     "text-white/80 hover:text-white",
                     isActive && "text-white",
                   )}
@@ -98,10 +98,10 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                   whileTap={{ scale: 0.95 }}
                 >
                   <span className="flex flex-col items-center gap-1">
-                    <span className="text-sm">
+                    <span className="text-base">
                       {item.icon}
                     </span>
-                    <span className="text-[10px] leading-tight">
+                    <span className="text-xs leading-tight">
                       {item.label}
                     </span>
                   </span>
@@ -122,30 +122,30 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                     >
                       {/* Top indicator that matches the tab color */}
                       <div 
-                        className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-t-full"
+                        className="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-t-full"
                         style={{ backgroundColor: item.color }}
                       >
                         {/* Multiple glow layers for enhanced effect */}
                         <div 
-                          className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2"
+                          className="absolute w-14 h-6 rounded-full blur-md -top-2 -left-2"
                           style={{ backgroundColor: `${item.color}30` }}
                         />
                         <div 
-                          className="absolute w-8 h-6 rounded-full blur-md -top-1"
+                          className="absolute w-10 h-6 rounded-full blur-md -top-1"
                           style={{ backgroundColor: `${item.color}25` }}
                         />
                         <div 
-                          className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2"
+                          className="absolute w-6 h-4 rounded-full blur-sm top-0 left-2"
                           style={{ backgroundColor: `${item.color}20` }}
                         />
                         {/* Additional glow for more intensity */}
                         <div 
-                          className="absolute w-16 h-8 rounded-full blur-lg -top-3 -left-4"
+                          className="absolute w-18 h-8 rounded-full blur-lg -top-3 -left-4"
                           style={{ backgroundColor: `${item.color}15` }}
                         />
                         {/* Extra glow layer for the "pressed" effect */}
                         <div 
-                          className="absolute w-20 h-10 rounded-full blur-xl -top-4 -left-6"
+                          className="absolute w-22 h-10 rounded-full blur-xl -top-4 -left-6"
                           style={{ backgroundColor: `${item.color}10` }}
                         />
                       </div>

@@ -1149,7 +1149,7 @@ export default function TennisTracker() {
   }
 
   return (
-    <div className="min-h-screen pb-20 animate-fade-in-up">
+    <div className="min-h-screen pb-24 animate-fade-in-up">
       {/* Header */}
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
@@ -1444,7 +1444,7 @@ export default function TennisTracker() {
                                         Remaining: {student.remainingSessions} | Make-ups: {student.makeupSessions}
                                       </p>
                                     </div>
-                                    <div className="flex gap-1 sm:gap-2">
+                                    <div className="flex gap-2">
                                       <Button
                                         size="sm"
                                         onClick={(e) => {
@@ -1453,15 +1453,14 @@ export default function TennisTracker() {
                                           toggleAttendanceSelection(studentId, "present")
                                         }}
                                         className={cn(
-                                          "glass-button transition-all duration-200 ease-in-out transform text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2",
+                                          "glass-button transition-all duration-200 ease-in-out transform min-w-[60px] sm:min-w-[80px]",
                                           attendanceSelections[studentId] === "present"
                                             ? "bg-green-500/20 border-2 border-green-400 text-green-300 font-semibold ring-2 ring-green-400/40"
                                             : "bg-green-500/20 hover:bg-green-500/30 border border-green-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
-                                        <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                        <span className="hidden sm:inline">Present</span>
-                                        <span className="sm:hidden">P</span>
+                                        <CheckCircle className="h-4 w-4 mr-1" />
+                                        <span className="text-sm font-medium">Present</span>
                                       </Button>
                                       <Button
                                         size="sm"
@@ -1471,15 +1470,14 @@ export default function TennisTracker() {
                                           toggleAttendanceSelection(studentId, "absent")
                                         }}
                                         className={cn(
-                                          "glass-button transition-all duration-200 ease-in-out transform text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2",
+                                          "glass-button transition-all duration-200 ease-in-out transform min-w-[60px] sm:min-w-[80px]",
                                           attendanceSelections[studentId] === "absent"
                                             ? "bg-red-500/20 border-2 border-red-400 text-red-300 font-semibold ring-2 ring-red-400/40"
                                             : "bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
-                                        <XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                        <span className="hidden sm:inline">Absent</span>
-                                        <span className="sm:hidden">A</span>
+                                        <XCircle className="h-4 w-4 mr-1" />
+                                        <span className="text-sm font-medium">Absent</span>
                                       </Button>
                                     </div>
                                   </div>
@@ -1949,7 +1947,7 @@ export default function TennisTracker() {
 
                     <div>
                       <Label className="text-secondary-white">Usual Days</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 mt-2">
                         {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
                           <div key={day} className="flex items-center space-x-2">
                             <Checkbox
