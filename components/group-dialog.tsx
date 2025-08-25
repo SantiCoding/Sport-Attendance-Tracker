@@ -127,7 +127,7 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="glass-modal-content w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogContent className="glass-dropdown w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-primary-white">{group ? "Edit Group" : "Create New Group"}</DialogTitle>
         </DialogHeader>

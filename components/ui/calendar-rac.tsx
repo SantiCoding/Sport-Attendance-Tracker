@@ -41,12 +41,80 @@ function Calendar({ value, onChange, className }: CalendarProps) {
   };
 
   return (
-    <div className={cn("glass-card rounded-lg border border-white/10 p-2 text-white", className)}>
-      <AriaCalendar 
-        value={date} 
-        onChange={handleDateChange}
-        className="w-full"
-      />
+    <div className={cn("glass-card rounded-lg border border-white/10 p-4 text-white min-h-[300px] bg-white/8 backdrop-blur-md", className)}>
+      <style jsx>{`
+        .calendar-container :global(button) {
+          background: rgba(255, 255, 255, 0.1) !important;
+          color: white !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          border-radius: 8px !important;
+          padding: 8px !important;
+          min-width: 40px !important;
+          height: 40px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          transition: all 0.2s ease !important;
+          backdrop-filter: blur(15px) !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+        }
+        .calendar-container :global(button:hover) {
+          background: rgba(255, 255, 255, 0.2) !important;
+          border-color: rgba(255, 255, 255, 0.3) !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        }
+        .calendar-container :global(button:focus) {
+          background: rgba(255, 255, 255, 0.2) !important;
+          border-color: rgba(255, 255, 255, 0.4) !important;
+          outline: none !important;
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) !important;
+        }
+        .calendar-container :global(button[data-selected]) {
+          background: rgba(255, 255, 255, 0.3) !important;
+          border-color: rgba(255, 255, 255, 0.5) !important;
+          box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2) !important;
+        }
+        .calendar-container :global(button[data-today]) {
+          border-color: rgba(255, 255, 255, 0.6) !important;
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3) !important;
+        }
+        .calendar-container :global(button[data-disabled]) {
+          opacity: 0.5 !important;
+          cursor: not-allowed !important;
+          background: rgba(255, 255, 255, 0.05) !important;
+          border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .calendar-container :global(button[data-disabled]:hover) {
+          background: rgba(255, 255, 255, 0.05) !important;
+          border-color: rgba(255, 255, 255, 0.1) !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+        }
+        .calendar-container :global(table) {
+          width: 100% !important;
+          border-collapse: separate !important;
+          border-spacing: 4px !important;
+        }
+        .calendar-container :global(th) {
+          color: rgba(255, 255, 255, 0.8) !important;
+          font-weight: 600 !important;
+          padding: 8px !important;
+          text-align: center !important;
+        }
+        .calendar-container :global(td) {
+          padding: 2px !important;
+        }
+        .calendar-container :global(thead) {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+          margin-bottom: 8px !important;
+        }
+      `}</style>
+      <div className="calendar-container">
+        <AriaCalendar 
+          value={date} 
+          onChange={handleDateChange}
+          className="w-full"
+        />
+      </div>
     </div>
   );
 }
