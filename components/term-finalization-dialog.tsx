@@ -65,7 +65,7 @@ export function TermFinalizationDialog({ open, onClose, onFinalize }: TermFinali
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="glass-modal-content w-[95vw] max-w-sm">
+      <DialogContent className="glass-dropdown w-[95vw] max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-primary-white">Finalize Term</DialogTitle>
           <DialogDescription className="text-secondary-white">

@@ -168,7 +168,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                 <SelectTrigger className="glass-input text-primary-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="glass-modal-content">
+                <SelectContent className="glass-dropdown">
                   <SelectItem value="name" className="text-primary-white">
                     Name (A-Z)
                   </SelectItem>
@@ -190,7 +190,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                 <SelectTrigger className="glass-input text-primary-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="glass-modal-content">
+                <SelectContent className="glass-dropdown">
                   <SelectItem value="all_students" className="text-primary-white">
                     All Students
                   </SelectItem>

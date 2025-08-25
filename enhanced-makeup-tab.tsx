@@ -203,7 +203,7 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
                 <SelectTrigger className="glass-input text-primary-white">
                   <SelectValue placeholder="All students" />
                 </SelectTrigger>
-                <SelectContent className="glass-modal-content">
+                <SelectContent className="glass-dropdown">
                   <SelectItem value="all_students" className="text-primary-white">
                     All Students
                   </SelectItem>
@@ -290,7 +290,7 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
                             Schedule
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="glass-modal-content text-primary-white max-w-md mx-auto">
+                        <DialogContent className="glass-dropdown text-primary-white max-w-md mx-auto">
                           <DialogHeader>
                             <DialogTitle className="text-primary-white">Schedule Make-up Session</DialogTitle>
                           </DialogHeader>
@@ -309,7 +309,7 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
                                     {format(scheduleDate, "PPP")}
                                   </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="glass-modal-content w-auto p-0" align="start">
+                                <PopoverContent className="glass-dropdown w-auto p-0" align="start">
                                   <Calendar
                                     mode="single"
                                     selected={scheduleDate}
@@ -335,7 +335,7 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
                                 <SelectTrigger className="glass-input text-primary-white">
                                   <SelectValue placeholder="Select group or leave empty for private" />
                                 </SelectTrigger>
-                                <SelectContent className="glass-modal-content">
+                                <SelectContent className="glass-dropdown">
                                   <SelectItem value="no_group" className="text-primary-white">
                                     Private Session (No Group)
                                   </SelectItem>
@@ -412,7 +412,7 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
                             Complete
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="glass-modal-content text-primary-white max-w-md mx-auto">
+                        <DialogContent className="glass-dropdown text-primary-white max-w-md mx-auto">
                           <DialogHeader>
                             <DialogTitle className="text-primary-white">Complete Make-up Session</DialogTitle>
                           </DialogHeader>

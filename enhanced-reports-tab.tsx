@@ -225,7 +225,7 @@ export function EnhancedReportsTab({ profileData, updateProfile }: EnhancedRepor
                     {format(selectedMonth, "MMMM yyyy")}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="glass-modal-content w-auto p-0" align="start">
+                <PopoverContent className="glass-dropdown w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={selectedMonth}
@@ -242,7 +242,7 @@ export function EnhancedReportsTab({ profileData, updateProfile }: EnhancedRepor
                 <SelectTrigger className="glass-input text-primary-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="glass-modal-content">
+                <SelectContent className="glass-dropdown">
                   <SelectItem value="all" className="text-primary-white">
                     All Groups
                   </SelectItem>
@@ -263,7 +263,7 @@ export function EnhancedReportsTab({ profileData, updateProfile }: EnhancedRepor
                 <SelectTrigger className="glass-input text-primary-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="glass-modal-content">
+                <SelectContent className="glass-dropdown">
                   <SelectItem value="attendance" className="text-primary-white">
                     Attendance
                   </SelectItem>
