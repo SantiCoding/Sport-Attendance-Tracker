@@ -1451,7 +1451,7 @@ export default function TennisTracker() {
                                         className={cn(
                                           "glass-button transition-all duration-300 ease-in-out transform",
                                           attendanceSelections[studentId] === "present"
-                                            ? "bg-green-500/20 border-2 border-green-400 text-green-300 font-semibold"
+                                            ? "bg-green-500/20 border-2 border-green-400 text-green-300 font-semibold ring-2 ring-green-400/40"
                                             : "bg-green-500/20 hover:bg-green-500/30 border border-green-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
@@ -1464,7 +1464,7 @@ export default function TennisTracker() {
                                         className={cn(
                                           "glass-button transition-all duration-300 ease-in-out transform",
                                           attendanceSelections[studentId] === "absent"
-                                            ? "bg-red-500/20 border-2 border-red-400 text-red-300 font-semibold"
+                                            ? "bg-red-500/20 border-2 border-red-400 text-red-300 font-semibold ring-2 ring-red-400/40"
                                             : "bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
@@ -2272,16 +2272,7 @@ export default function TennisTracker() {
                                 <p className="text-xs text-tertiary-white">{makeup.originalDate}</p>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    deletePendingMakeup(makeup.id)
-                                  }}
-                                  size="sm"
-                                  className="glass-button text-primary-white bg-red-500/20 border-red-500/30"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                {/* Confirm first, then Delete (requested order) */}
                                 <Button
                                   onClick={(e) => {
                                     e.stopPropagation()
@@ -2291,6 +2282,16 @@ export default function TennisTracker() {
                                   className="glass-button text-primary-white bg-green-500/20 border-green-500/30"
                                 >
                                   <CheckCircle className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    deletePendingMakeup(makeup.id)
+                                  }}
+                                  size="sm"
+                                  className="glass-delete-button"
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
@@ -2367,7 +2368,7 @@ export default function TennisTracker() {
                                   deleteCompletedMakeup(makeup.id)
                                 }}
                                 size="sm"
-                                className="glass-button text-primary-white bg-red-500/20 border-red-500/30"
+                                className="glass-delete-button"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

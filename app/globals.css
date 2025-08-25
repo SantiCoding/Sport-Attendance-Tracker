@@ -139,6 +139,8 @@ body {
 
 .glass-delete-button:active {
   transform: translateY(0);
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 /* Text Color Classes */
