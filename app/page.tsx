@@ -1152,7 +1152,7 @@ export default function TennisTracker() {
       <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in-up">
         <Card className="glass-card w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-primary-white text-2xl">Welcome to Tennis Tracker</CardTitle>
+            <CardTitle className="text-primary-white text-2xl">Welcome to Attendance Tracker</CardTitle>
             <p className="text-secondary-white">Create your coach profile to get started</p>
           </CardHeader>
           <CardContent className="space-y-4">

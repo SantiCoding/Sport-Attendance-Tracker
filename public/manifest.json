@@ -1,7 +1,7 @@
 {
-  "name": "Tennis Tracker",
-  "short_name": "Tennis Tracker",
-  "description": "Professional tennis student management system for coaches",
+  "name": "Attendance Tracker",
+  "short_name": "Attendance Tracker",
+  "description": "Professional sports attendance management system for coaches",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",

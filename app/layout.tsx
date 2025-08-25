@@ -8,8 +8,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Tennis Tracker",
-  description: "Professional tennis student management system for coaches",
+  title: "Attendance Tracker",
+  description: "Professional sports attendance management system for coaches",
   generator: "v0.app",
   manifest: "/manifest.json",
   themeColor: "#0a0a0a",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Tennis Tracker",
+    title: "Attendance Tracker",
   },
   formatDetection: {
     telephone: false,
@@ -40,7 +40,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Tennis Tracker" />
+        <meta name="apple-mobile-web-app-title" content="Attendance Tracker" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#0a0a0a" />
       </head>
