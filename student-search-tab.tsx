@@ -314,7 +314,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                               </p>
                               <div className="flex flex-wrap gap-2">
                                 {studentGroups.map((group) => (
-                                  <Badge key={group.id} className="bg-blue-500/20 text-blue-300 border-blue-400/30">
+                                  <Badge key={group.id} className="glass-card text-primary-white border-white/20">
                                     {group.name}
                                     {group.dayOfWeek && group.time && (
                                       <span className="ml-1 opacity-75">
