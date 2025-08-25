@@ -42,7 +42,7 @@ const menuItems: MenuItem[] = [
   },
   {
     icon: <Clock className="h-5 w-5" />,
-    label: "Make-Up",
+    label: "Makeup",
     href: "makeup",
     gradient: "radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(139,92,246,0.06) 50%, rgba(109,40,217,0) 100%)",
     iconColor: "text-purple-500",
@@ -80,8 +80,8 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   // Use enhanced mobile navigation for mobile devices
   if (isMobile) {
     return (
-      <div className="fixed bottom-4 left-4 right-4 z-[9999]">
-        <div className="flex items-center justify-center">
+      <div className="fixed bottom-0 left-0 right-0 z-[9999] w-full">
+        <div className="flex items-center justify-center p-4">
           <div className="flex items-center gap-2 glass-card py-2 px-4 rounded-full shadow-xl border border-white/20 w-full max-w-md backdrop-blur-md">
             {menuItems.map((item) => {
               const isActive = activeTab === item.href
@@ -122,30 +122,30 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                     >
                       {/* Top indicator that matches the tab color */}
                       <div 
-                        className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-t-full"
+                        className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full"
                         style={{ backgroundColor: item.color }}
                       >
                         {/* Multiple glow layers for enhanced effect */}
                         <div 
-                          className="absolute w-14 h-6 rounded-full blur-md -top-2 -left-2"
+                          className="absolute w-12 h-4 rounded-full blur-md -top-2 -left-2"
                           style={{ backgroundColor: `${item.color}30` }}
                         />
                         <div 
-                          className="absolute w-10 h-6 rounded-full blur-md -top-1"
+                          className="absolute w-8 h-4 rounded-full blur-md -top-1"
                           style={{ backgroundColor: `${item.color}25` }}
                         />
                         <div 
-                          className="absolute w-6 h-4 rounded-full blur-sm top-0 left-2"
+                          className="absolute w-4 h-2 rounded-full blur-sm top-0 left-2"
                           style={{ backgroundColor: `${item.color}20` }}
                         />
                         {/* Additional glow for more intensity */}
                         <div 
-                          className="absolute w-18 h-8 rounded-full blur-lg -top-3 -left-4"
+                          className="absolute w-16 h-6 rounded-full blur-lg -top-3 -left-4"
                           style={{ backgroundColor: `${item.color}15` }}
                         />
                         {/* Extra glow layer for the "pressed" effect */}
                         <div 
-                          className="absolute w-22 h-10 rounded-full blur-xl -top-4 -left-6"
+                          className="absolute w-20 h-8 rounded-full blur-xl -top-4 -left-6"
                           style={{ backgroundColor: `${item.color}10` }}
                         />
                       </div>

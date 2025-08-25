@@ -1176,7 +1176,7 @@ export default function TennisTracker() {
   }
 
   return (
-    <div className="min-h-screen pb-32 animate-fade-in-up">
+    <div className="min-h-screen pb-40 animate-fade-in-up">
       {/* Header */}
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
