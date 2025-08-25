@@ -436,21 +436,37 @@ export default function TennisTracker() {
 
     const timeString = `${selectedTime.hour}:${selectedTime.minute} ${selectedTime.period}`
     const newMakeupSessions: MakeupSession[] = []
+    const newAttendanceRecords: AttendanceRecord[] = []
 
-    // Create make-up sessions for all students in the group
+    // Create cancelled attendance records for all students in the group
     group.studentIds.forEach((studentId) => {
       const student = currentProfile.students.find((s) => s.id === studentId)
       if (!student) return
+
+      const attendanceRecord: AttendanceRecord = {
+        id: `attendance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${studentId}`,
+        date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        time: timeString,
+        groupId: selectedGroupId,
+        studentId,
+        status: "canceled",
+        notes: cancelReason || "Session cancelled",
+        timeAdjustmentAmount: timeAdjustmentNeeded ? timeAdjustmentAmount : undefined,
+        timeAdjustmentType: timeAdjustmentNeeded ? timeAdjustmentType : undefined,
+        timeAdjustmentReason: timeAdjustmentNeeded ? timeAdjustmentReason : undefined,
+      }
+
+      newAttendanceRecords.push(attendanceRecord)
 
       const makeupSession: MakeupSession = {
         id: `makeup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${studentId}`,
         studentId,
         originalGroupId: selectedGroupId,
-        originalDate: selectedDate ? format(selectedDate, "MMM dd, yyyy") : format(new Date(), "MMM dd, yyyy"),
-        originalTime: timeString,
-        status: "pending",
+        originalDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
         reason: cancelReason || "Session cancelled",
+        notes: cancelReason || "Session cancelled",
         createdDate: new Date().toISOString(),
+        status: "pending",
       }
 
       newMakeupSessions.push(makeupSession)
@@ -467,6 +483,7 @@ export default function TennisTracker() {
     const updatedProfile = {
       ...currentProfile,
       students: updatedStudents,
+      attendanceRecords: [...currentProfile.attendanceRecords, ...newAttendanceRecords],
       makeupSessions: [...(currentProfile.makeupSessions || []), ...newMakeupSessions],
     }
 
@@ -474,6 +491,8 @@ export default function TennisTracker() {
     setAttendanceSelections({})
     setAttendanceNotes("")
     setCancelReason("")
+    setTimeAdjustmentAmount("")
+    setTimeAdjustmentReason("")
     setSessionCancelled(true)
 
     toast(`❌ Session cancelled for ${group.name} - Make-up sessions created`, "error")
@@ -2543,7 +2562,7 @@ export default function TennisTracker() {
                                     </p>
                                     <div className="text-xs text-tertiary-white mt-1">
                                       {cancelledCount > 0 ? (
-                                        <span className="text-red-400">Session cancelled</span>
+                                        <span className="text-red-400">Session cancelled ({cancelledCount} students)</span>
                                       ) : (
                                         <>
                                           Present: {presentCount} | Absent: {absentCount}
@@ -2596,17 +2615,26 @@ export default function TennisTracker() {
                                               className="flex justify-between items-center bg-white/5 rounded p-2"
                                             >
                                               <span className="text-primary-white">{student?.name || "Unknown"}</span>
-                                              <Badge
-                                                className={
-                                                  record.status === "present"
-                                                    ? "bg-green-500/20 text-green-300 border-green-400/30"
-                                                    : record.status === "absent"
-                                                      ? "bg-red-500/20 text-red-300 border-red-400/30"
-                                                      : "bg-gray-500/20 text-gray-300 border-gray-400/30"
-                                                }
-                                              >
-                                                {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                                              </Badge>
+                                              <div className="flex flex-col items-end gap-1">
+                                                <Badge
+                                                  className={
+                                                    record.status === "present"
+                                                      ? "bg-green-500/20 text-green-300 border-green-400/30"
+                                                      : record.status === "absent"
+                                                        ? "bg-red-500/20 text-red-300 border-red-400/30"
+                                                        : record.status === "canceled"
+                                                          ? "bg-red-500/20 text-red-300 border-red-400/30"
+                                                          : "bg-gray-500/20 text-gray-300 border-gray-400/30"
+                                                  }
+                                                >
+                                                  {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                                                </Badge>
+                                                {record.timeAdjustmentAmount && record.timeAdjustmentType && (
+                                                  <span className="text-xs text-blue-400">
+                                                    {record.timeAdjustmentType === "more" ? "+" : "-"}{record.timeAdjustmentAmount} min
+                                                  </span>
+                                                )}
+                                              </div>
                                             </div>
                                           )
                                         })}
