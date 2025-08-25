@@ -884,7 +884,9 @@ export default function TennisTracker() {
       const student = currentProfile.students.find((s) => s.id === record.studentId)
       csvData.push([
         session.groupName,
-        format(new Date(session.date), "MMM dd, yyyy"),
+        session.date && !isNaN(new Date(session.date).getTime()) 
+          ? format(new Date(session.date), "MMM dd, yyyy")
+          : "Invalid Date",
         session.time,
         "60 minutes", // Default duration - could be made dynamic
         student?.name || "Unknown",
@@ -991,7 +993,15 @@ export default function TennisTracker() {
 
     // Convert to array and sort by date (newest first)
     return Object.values(sessionGroups)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => {
+        const dateA = new Date(a.date).getTime()
+        const dateB = new Date(b.date).getTime()
+        // Handle invalid dates by putting them at the end
+        if (isNaN(dateA) && isNaN(dateB)) return 0
+        if (isNaN(dateA)) return 1
+        if (isNaN(dateB)) return -1
+        return dateB - dateA
+      })
       .slice(0, 20)
   }
 
@@ -2336,9 +2346,9 @@ export default function TennisTracker() {
                                 </h3>
                                 <p className="text-sm text-secondary-white">{group?.name || "Unknown Group"}</p>
                                 <p className="text-sm text-green-400 font-medium">
-                                  ✅ Completed: {makeup.completedDate
+                                  ✅ Completed: {makeup.completedDate && !isNaN(new Date(makeup.completedDate).getTime())
                                     ? format(new Date(makeup.completedDate), "MMM dd, yyyy 'at' h:mm a")
-                                    : format(new Date(), "MMM dd, yyyy 'at' h:mm a")}
+                                    : "Invalid Date"}
                                 </p>
                               </div>
                               <Button
@@ -2473,7 +2483,9 @@ export default function TennisTracker() {
                                       )}
                                     </h3>
                                     <p className="text-sm text-secondary-white">
-                                      {format(new Date(session.date), "MMM dd, yyyy")} at {session.time}
+                                      {session.date && !isNaN(new Date(session.date).getTime()) 
+                                        ? format(new Date(session.date), "MMM dd, yyyy") 
+                                        : "Invalid Date"} at {session.time}
                                     </p>
                                     <div className="text-xs text-tertiary-white mt-1">
                                       {cancelledCount > 0 ? (
@@ -2583,7 +2595,9 @@ export default function TennisTracker() {
                                     {term.attendanceRecords.length} sessions • {term.studentSnapshot.length} students
                                   </div>
                                   <p className="text-xs text-tertiary-white">
-                                    Finalized: {format(new Date(term.finalizedDate), "MMM dd, yyyy")}
+                                    Finalized: {term.finalizedDate && !isNaN(new Date(term.finalizedDate).getTime())
+                                      ? format(new Date(term.finalizedDate), "MMM dd, yyyy")
+                                      : "Invalid Date"}
                                   </p>
                                 </div>
                                 <div className="flex gap-2">
