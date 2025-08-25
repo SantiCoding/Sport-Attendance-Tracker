@@ -1449,7 +1449,7 @@ export default function TennisTracker() {
                                         className={cn(
                                           "glass-button transition-all duration-300 ease-in-out transform",
                                           attendanceSelections[studentId] === "present"
-                                            ? "bg-green-500/20 border-2 border-green-400 text-green-300 font-semibold"
+                                            ? "bg-green-500/40 border-2 border-green-400 text-green-200 font-semibold shadow-lg shadow-green-500/20"
                                             : "bg-green-500/20 hover:bg-green-500/30 border border-green-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
@@ -1462,7 +1462,7 @@ export default function TennisTracker() {
                                         className={cn(
                                           "glass-button transition-all duration-300 ease-in-out transform",
                                           attendanceSelections[studentId] === "absent"
-                                            ? "bg-red-500/20 border-2 border-red-400 text-red-300 font-semibold"
+                                            ? "bg-red-500/40 border-2 border-red-400 text-red-200 font-semibold shadow-lg shadow-red-500/20"
                                             : "bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-primary-white hover:scale-105",
                                         )}
                                       >
