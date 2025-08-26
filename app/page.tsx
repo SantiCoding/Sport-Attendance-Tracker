@@ -245,7 +245,8 @@ export default function TennisTracker() {
 
   // Load profiles from cloud or localStorage on component mount
   useEffect(() => {
-    if (hasLoadedData.current) return // Prevent multiple loads
+    // Only load if we haven't loaded data for the current user yet
+    if (hasLoadedData.current) return
     
     const loadData = async () => {
       if (user && isSupabaseConfigured) {
@@ -309,6 +310,11 @@ export default function TennisTracker() {
 
     loadData()
   }, [user?.id, isSupabaseConfigured]) // Remove loadFromCloud from dependencies
+
+  // Reset data loading flag when user changes
+  useEffect(() => {
+    hasLoadedData.current = false
+  }, [user?.id])
 
   // Save profiles to cloud or localStorage whenever they change
   useEffect(() => {
