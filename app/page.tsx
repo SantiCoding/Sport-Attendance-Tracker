@@ -45,6 +45,7 @@ import { format, startOfMonth, endOfMonth, isWithinInterval } from "date-fns"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/toast"
 import { useAuth } from "@/use-auth"
+import { useCloudSync } from "@/use-cloud-sync"
 import { MenuBar } from "@/components/menu-bar"
 import { StudentDialog } from "@/components/student-dialog"
 import { GroupDialog } from "@/components/group-dialog"
@@ -117,6 +118,7 @@ export default function TennisTracker() {
   console.log("🎾 Tennis Tracker - Latest version loaded with glass-delete-button styling - FORCE DEPLOY");
   const { toast } = useToast()
   const { user, loading, signInWithGoogle, signOut, isSupabaseConfigured } = useAuth()
+  const { loadFromCloud, saveToCloud, syncing } = useCloudSync(user)
   const [isGuestMode, setIsGuestMode] = useState(false)
   const [profiles, setProfiles] = useState<CoachProfile[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<string>("")
@@ -240,41 +242,67 @@ export default function TennisTracker() {
     }
   }, [smartAttendanceGroupId, currentProfile])
 
-  // Load profiles from localStorage on component mount
+  // Load profiles from cloud or localStorage on component mount
   useEffect(() => {
-    const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
-    const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
+    const loadData = async () => {
+      if (user && isSupabaseConfigured) {
+        // Load from cloud when signed in
+        console.log("🔄 Loading data from cloud...")
+        const cloudProfiles = await loadFromCloud()
+        if (cloudProfiles.length > 0) {
+          setProfiles(cloudProfiles)
+          setCurrentProfileId(cloudProfiles[0].id)
+          console.log("✅ Data loaded from cloud")
+        } else {
+          console.log("📄 No cloud data found, starting fresh")
+          setProfiles([])
+        }
+      } else {
+        // Load from localStorage when not signed in or in guest mode
+        const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
+        const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
 
-    if (savedProfiles) {
-      try {
-        const parsedProfiles = JSON.parse(savedProfiles).map((profile: any) => ({
-          ...profile,
-          // Ensure all arrays are initialized
-          students: profile.students || [],
-          groups: profile.groups || [],
-          attendanceRecords: profile.attendanceRecords || [],
-          archivedTerms: profile.archivedTerms || [],
-          completedMakeupSessions: profile.completedMakeupSessions || [],
-          makeupSessions: profile.makeupSessions || [],
-        }))
-        setProfiles(parsedProfiles)
-      } catch (error) {
-        console.error("Error parsing saved profiles:", error)
-        setProfiles([])
+        if (savedProfiles) {
+          try {
+            const parsedProfiles = JSON.parse(savedProfiles).map((profile: any) => ({
+              ...profile,
+              // Ensure all arrays are initialized
+              students: profile.students || [],
+              groups: profile.groups || [],
+              attendanceRecords: profile.attendanceRecords || [],
+              archivedTerms: profile.archivedTerms || [],
+              completedMakeupSessions: profile.completedMakeupSessions || [],
+              makeupSessions: profile.makeupSessions || [],
+            }))
+            setProfiles(parsedProfiles)
+          } catch (error) {
+            console.error("Error parsing saved profiles:", error)
+            setProfiles([])
+          }
+        }
+
+        if (savedCurrentProfile) {
+          setCurrentProfileId(savedCurrentProfile)
+        }
       }
     }
 
-    if (savedCurrentProfile) {
-      setCurrentProfileId(savedCurrentProfile)
-    }
-  }, [])
+    loadData()
+  }, [user, isSupabaseConfigured, loadFromCloud])
 
-  // Save profiles to localStorage whenever they change
+  // Save profiles to cloud or localStorage whenever they change
   useEffect(() => {
     if (profiles.length > 0) {
-      localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
+      if (user && isSupabaseConfigured) {
+        // Save to cloud when signed in
+        console.log("🔄 Saving data to cloud...")
+        saveToCloud(profiles)
+      } else {
+        // Save to localStorage when not signed in or in guest mode
+        localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
+      }
     }
-  }, [profiles])
+  }, [profiles, user, isSupabaseConfigured, saveToCloud])
 
   // Save current profile ID to localStorage
   useEffect(() => {
@@ -1293,6 +1321,22 @@ export default function TennisTracker() {
                   >
                     Dismiss
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* Sync Status Banner */}
+      {user && syncing && (
+        <div className="p-4">
+          <div className="max-w-7xl mx-auto">
+            <Card className="glass-card bg-blue-900/20 border-blue-500/30">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                  <p className="text-blue-200 font-medium">Syncing data to cloud...</p>
                 </div>
               </CardContent>
             </Card>
