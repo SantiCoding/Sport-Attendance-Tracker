@@ -1396,6 +1396,50 @@ export default function TennisTracker() {
                     </Badge>
                   </div>
                 )}
+                
+                {/* User Menu */}
+                <div className="flex items-center gap-2">
+                  {user ? (
+                    <div className="flex items-center gap-2">
+                      <Badge className="glass-card text-primary-white border-white/20">
+                        <User className="h-3 w-3 mr-1" />
+                        {user.email}
+                      </Badge>
+                      <Button
+                        onClick={signOut}
+                        size="sm"
+                        variant="outline"
+                        className="glass-button text-primary-white border-white/20"
+                      >
+                        Sign Out
+                      </Button>
+                    </div>
+                  ) : isGuestMode ? (
+                    <div className="flex items-center gap-2">
+                      <Badge className="glass-card text-yellow-500 border-yellow-500/30">
+                        <User className="h-3 w-3 mr-1" />
+                        Guest Mode
+                      </Badge>
+                      <Button
+                        onClick={() => setIsGuestMode(false)}
+                        size="sm"
+                        variant="outline"
+                        className="glass-button text-primary-white border-white/20"
+                      >
+                        Sign In
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={signInWithGoogle}
+                      size="sm"
+                      className="glass-button text-primary-white"
+                      disabled={loading}
+                    >
+                      {loading ? "Signing in..." : "Sign In"}
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
