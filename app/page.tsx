@@ -262,8 +262,15 @@ export default function TennisTracker() {
         }
       } else {
         // Load from localStorage when not signed in or in guest mode
+        console.log("📂 Loading data from localStorage...", { isGuestMode: !user && isGuestMode })
         const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
         const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
+
+        console.log("📂 Found saved data:", { 
+          hasProfiles: !!savedProfiles, 
+          hasCurrentProfile: !!savedCurrentProfile,
+          profilesLength: savedProfiles ? JSON.parse(savedProfiles).length : 0
+        })
 
         if (savedProfiles) {
           try {
@@ -277,14 +284,18 @@ export default function TennisTracker() {
               completedMakeupSessions: profile.completedMakeupSessions || [],
               makeupSessions: profile.makeupSessions || [],
             }))
+            console.log("✅ Loaded profiles from localStorage:", parsedProfiles.length)
             setProfiles(parsedProfiles)
           } catch (error) {
             console.error("Error parsing saved profiles:", error)
             setProfiles([])
           }
+        } else {
+          console.log("📂 No saved profiles found in localStorage")
         }
 
         if (savedCurrentProfile) {
+          console.log("✅ Loaded current profile ID from localStorage:", savedCurrentProfile)
           setCurrentProfileId(savedCurrentProfile)
         }
       }
@@ -311,8 +322,13 @@ export default function TennisTracker() {
         })
       } else {
         // Save to localStorage when not signed in or in guest mode
-        console.log("💾 Saving data to localStorage...")
+        console.log("💾 Saving data to localStorage...", { 
+          profilesCount: profiles.length,
+          firstProfile: profiles[0]?.name,
+          isGuestMode: !user && isGuestMode
+        })
         localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
+        console.log("✅ Data saved to localStorage successfully")
       }
     }
   }, [profiles, user?.id, isSupabaseConfigured]) // Remove saveToCloud from dependencies
