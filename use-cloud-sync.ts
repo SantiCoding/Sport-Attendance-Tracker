@@ -193,11 +193,20 @@ export function useCloudSync(user: User | null) {
 
   // Save data to cloud
   const saveToCloud = async (profiles: CoachProfile[]) => {
-    if (!user || !isSupabaseConfigured) return
+    if (!user || !isSupabaseConfigured) {
+      console.log("❌ Cannot save to cloud:", { user: !!user, isSupabaseConfigured })
+      return
+    }
 
+    console.log("🔄 Starting cloud save...", { 
+      userEmail: user.email, 
+      profilesCount: profiles.length 
+    })
     setSyncing(true)
     try {
       for (const profile of profiles) {
+        console.log("🔄 Saving profile:", { profileId: profile.id, profileName: profile.name })
+        
         // Upsert coach profile
         const { error: profileError } = await supabase.from("coach_profiles").upsert({
           id: profile.id,
@@ -206,7 +215,11 @@ export function useCloudSync(user: User | null) {
           updated_at: new Date().toISOString(),
         })
 
-        if (profileError) throw profileError
+        if (profileError) {
+          console.error("❌ Profile save error:", profileError)
+          throw profileError
+        }
+        console.log("✅ Profile saved successfully")
 
         // Clear existing data for this profile
         await supabase.from("students").delete().eq("profile_id", profile.id)

@@ -299,10 +299,19 @@ export default function TennisTracker() {
     if (profiles.length > 0) {
       if (user && isSupabaseConfigured) {
         // Save to cloud when signed in
-        console.log("🔄 Saving data to cloud...")
-        saveToCloud(profiles)
+        console.log("🔄 Saving data to cloud...", { 
+          userEmail: user.email, 
+          profilesCount: profiles.length,
+          firstProfile: profiles[0]?.name 
+        })
+        saveToCloud(profiles).then(() => {
+          console.log("✅ Data saved to cloud successfully")
+        }).catch((error) => {
+          console.error("❌ Error saving to cloud:", error)
+        })
       } else {
         // Save to localStorage when not signed in or in guest mode
+        console.log("💾 Saving data to localStorage...")
         localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
       }
     }
