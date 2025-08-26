@@ -205,7 +205,12 @@ export function useCloudSync(user: User | null) {
     setSyncing(true)
     try {
       for (const profile of profiles) {
-        console.log("🔄 Saving profile:", { profileId: profile.id, profileName: profile.name })
+        console.log("🔄 Saving profile:", { 
+          profileId: profile.id, 
+          profileName: profile.name,
+          userId: user.id,
+          isProfileIdValid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profile.id)
+        })
         
         // Upsert coach profile
         const { error: profileError } = await supabase.from("coach_profiles").upsert({
@@ -217,6 +222,12 @@ export function useCloudSync(user: User | null) {
 
         if (profileError) {
           console.error("❌ Profile save error:", profileError)
+          console.error("❌ Profile data being sent:", {
+            id: profile.id,
+            user_id: user.id,
+            name: profile.name,
+            updated_at: new Date().toISOString(),
+          })
           throw profileError
         }
         console.log("✅ Profile saved successfully")
