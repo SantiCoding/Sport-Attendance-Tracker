@@ -17,6 +17,34 @@ export function useAuth() {
       }
 
       try {
+        // Handle OAuth hash fragment tokens
+        if (typeof window !== 'undefined' && window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          const accessToken = hashParams.get('access_token')
+          const refreshToken = hashParams.get('refresh_token')
+          
+          if (accessToken && refreshToken) {
+            console.log("Processing OAuth tokens from hash fragment")
+            try {
+              const { data, error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              })
+              
+              if (error) {
+                console.error("Error setting session from tokens:", error)
+              } else if (data.session) {
+                console.log("Successfully set session from OAuth tokens")
+                setUser(data.session.user)
+                // Clear the hash fragment
+                window.history.replaceState({}, '', '/')
+              }
+            } catch (error) {
+              console.error("Error processing OAuth tokens:", error)
+            }
+          }
+        }
+
         // Get initial session
         const { data, error } = await supabase.auth.getSession()
 
