@@ -10,6 +10,14 @@ export default function AuthCallback() {
     console.log("🔍 Auth callback page: Starting...")
     console.log("🔍 Current URL:", window.location.href)
     console.log("🔍 Hash fragment:", window.location.hash)
+    console.log("🔍 Search params:", window.location.search)
+    console.log("🔍 Full URL parts:", {
+      href: window.location.href,
+      origin: window.location.origin,
+      pathname: window.location.pathname,
+      search: window.location.search,
+      hash: window.location.hash
+    })
     
     // Check if we have hash fragment tokens
     if (typeof window !== 'undefined' && window.location.hash) {
@@ -66,8 +74,27 @@ export default function AuthCallback() {
           router.replace('/')
         }
       } else {
-        console.log("📄 Auth callback page: No hash fragment or tokens, redirecting to main app")
-        router.replace('/')
+        // Final fallback - try to extract tokens from anywhere in the URL
+        console.log("🔍 Auth callback page: Trying final fallback token extraction")
+        const fullUrl = window.location.href
+        
+        // Look for access_token anywhere in the URL
+        const accessTokenMatch = fullUrl.match(/access_token=([^&]+)/)
+        const refreshTokenMatch = fullUrl.match(/refresh_token=([^&]+)/)
+        
+        if (accessTokenMatch && refreshTokenMatch) {
+          const accessToken = decodeURIComponent(accessTokenMatch[1])
+          const refreshToken = decodeURIComponent(refreshTokenMatch[1])
+          
+          console.log("🔑 Auth callback page: Found tokens in URL via regex")
+          sessionStorage.setItem('oauth_access_token', accessToken)
+          sessionStorage.setItem('oauth_refresh_token', refreshToken)
+          console.log("🔄 Auth callback page: Redirecting to main app")
+          router.replace('/')
+        } else {
+          console.log("📄 Auth callback page: No tokens found anywhere, redirecting to main app")
+          router.replace('/')
+        }
       }
     }
   }, [router])
