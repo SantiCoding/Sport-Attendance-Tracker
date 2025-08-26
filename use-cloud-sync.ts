@@ -250,7 +250,7 @@ export function useCloudSync(user: User | null) {
             name: s.name,
             notes: s.notes,
             prepaidSessions: s.prepaid_sessions,
-            remainingSessions: s.remaining_sessions || 0,
+            remainingSessions: s.prepaid_sessions, // Use prepaid_sessions as remaining_sessions until migration
             makeupSessions: s.makeup_sessions,
           })),
           groups: (groups || []).map((g) => ({
@@ -258,9 +258,9 @@ export function useCloudSync(user: User | null) {
             name: g.name,
             type: g.type,
             studentIds: g.student_ids || [],
-            dayOfWeek: g.day_of_week,
-            time: g.time,
-            duration: g.duration,
+            dayOfWeek: g.day_of_week || undefined,
+            time: g.time || undefined,
+            duration: g.duration || undefined,
           })),
           attendanceRecords: (attendanceRecords || []).map((a) => ({
             id: a.id,
@@ -397,7 +397,6 @@ export function useCloudSync(user: User | null) {
               name: s.name,
               notes: s.notes,
               prepaid_sessions: s.prepaidSessions,
-              remaining_sessions: s.remainingSessions,
               makeup_sessions: s.makeupSessions,
             })),
           )
@@ -414,9 +413,6 @@ export function useCloudSync(user: User | null) {
               name: g.name,
               type: g.type,
               student_ids: g.studentIds,
-              day_of_week: g.dayOfWeek,
-              time: g.time,
-              duration: g.duration,
             })),
           )
 
