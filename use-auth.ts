@@ -64,6 +64,39 @@ export function useAuth() {
         
         // Run immediately
         processHashTokens()
+        
+        // Also check for tokens stored in sessionStorage (from callback page)
+        const checkSessionStorageTokens = async () => {
+          if (typeof window !== 'undefined') {
+            const accessToken = sessionStorage.getItem('oauth_access_token')
+            const refreshToken = sessionStorage.getItem('oauth_refresh_token')
+            
+            if (accessToken && refreshToken) {
+              console.log("🔍 Found OAuth tokens in sessionStorage")
+              try {
+                const { data, error } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                })
+                
+                if (error) {
+                  console.error("❌ Error setting session from sessionStorage tokens:", error)
+                } else if (data.session) {
+                  console.log("✅ Successfully set session from sessionStorage tokens")
+                  setUser(data.session.user)
+                  // Clear tokens from sessionStorage
+                  sessionStorage.removeItem('oauth_access_token')
+                  sessionStorage.removeItem('oauth_refresh_token')
+                  console.log("🧹 Cleared tokens from sessionStorage")
+                }
+              } catch (error) {
+                console.error("❌ Error processing sessionStorage tokens:", error)
+              }
+            }
+          }
+        }
+        
+        checkSessionStorageTokens()
 
         // Get initial session
         const { data, error } = await supabase.auth.getSession()

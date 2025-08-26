@@ -41,13 +41,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Handle hash fragment tokens (OAuth response)
-  const url = new URL(request.url)
-  if (url.hash && url.hash.includes('access_token')) {
-    console.log("Received OAuth tokens in hash fragment")
-    // Redirect to main app - the client-side auth will handle the tokens
-    return NextResponse.redirect(new URL("/", request.url))
-  }
+  // Hash fragments are client-side only and won't be available here
+  // The client-side auth hook will handle hash fragment tokens
 
   // No code or error, redirect to main app
   console.log("No code or error in callback, redirecting to main app")
