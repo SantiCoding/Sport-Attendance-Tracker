@@ -324,6 +324,15 @@ export default function TennisTracker() {
     }
   }, [currentProfileId])
 
+  // Generate a proper UUID v4
+  const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
   const createProfile = () => {
     if (!newProfileName.trim()) {
       toast("❌ Name required", "error")
@@ -331,7 +340,7 @@ export default function TennisTracker() {
     }
 
     const newProfile: CoachProfile = {
-      id: `profile_${Date.now()}`,
+      id: generateUUID(),
       name: newProfileName.trim(),
       students: [],
       groups: [],
@@ -412,7 +421,7 @@ export default function TennisTracker() {
       if (!student) return
 
       const attendanceRecord: AttendanceRecord = {
-        id: `attendance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${studentId}`,
+        id: generateUUID(),
         date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
         time: timeString,
         groupId: selectedGroupId,
@@ -432,7 +441,7 @@ export default function TennisTracker() {
         )
       } else if (status === "absent") {
         const makeupSession: MakeupSession = {
-          id: `makeup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${studentId}`,
+          id: generateUUID(),
           studentId,
           originalDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
           originalGroupId: selectedGroupId,
@@ -488,7 +497,7 @@ export default function TennisTracker() {
       if (!student) return
 
       const attendanceRecord: AttendanceRecord = {
-        id: `attendance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${studentId}`,
+        id: generateUUID(),
         date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
         time: timeString,
         groupId: selectedGroupId,
@@ -503,7 +512,7 @@ export default function TennisTracker() {
       newAttendanceRecords.push(attendanceRecord)
 
       const makeupSession: MakeupSession = {
-        id: `makeup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${studentId}`,
+        id: generateUUID(),
         studentId,
         originalGroupId: selectedGroupId,
         originalDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
@@ -613,7 +622,7 @@ export default function TennisTracker() {
     if (!currentProfile) return
 
     const newStudents = studentNames.map((name) => ({
-      id: `student_${Date.now()}_${Math.random()}`,
+      id: generateUUID(),
       name,
       notes: "",
       prepaidSessions: 0, // No preset sessions
@@ -625,7 +634,7 @@ export default function TennisTracker() {
 
     if (!targetGroup) {
       targetGroup = {
-        id: `group_${Date.now()}`,
+        id: generateUUID(),
         name: smartSorterGroupName.trim(),
         type: "group",
         studentIds: newStudents.map((s) => s.id),
@@ -714,7 +723,7 @@ export default function TennisTracker() {
 
       // Create attendance record
       const attendanceRecord: AttendanceRecord = {
-        id: `attendance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${studentId}`,
+        id: generateUUID(),
         date: currentDate,
         time: timeString,
         groupId: smartAttendanceGroupId,
@@ -736,7 +745,7 @@ export default function TennisTracker() {
       } else {
         // Create makeup session for absent students
         const makeupSession: MakeupSession = {
-          id: `makeup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${studentId}`,
+          id: generateUUID(),
           studentId,
           originalDate: currentDate,
           originalGroupId: smartAttendanceGroupId,
@@ -1095,7 +1104,7 @@ export default function TennisTracker() {
     const year = format(selectedMonth || new Date(), "yyyy")
 
     const termData = {
-      id: `term_${Date.now()}`,
+      id: generateUUID(),
       name: termName,
       startMonth,
       endMonth,
