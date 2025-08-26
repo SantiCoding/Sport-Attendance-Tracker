@@ -54,6 +54,18 @@ interface ArchivedTerm {
   finalizedDate: string
 }
 
+interface MakeupSession {
+  id: string
+  studentId: string
+  originalDate?: string
+  originalGroupId?: string
+  reason: string
+  notes: string
+  createdDate: string
+  status: "pending" | "completed"
+  completedDate?: string
+}
+
 interface CoachProfile {
   id: string
   name: string
@@ -62,11 +74,108 @@ interface CoachProfile {
   attendanceRecords: AttendanceRecord[]
   archivedTerms: ArchivedTerm[]
   completedMakeupSessions: CompletedMakeupSession[]
+  makeupSessions: MakeupSession[]
 }
 
 export function useCloudSync(user: User | null) {
   const [syncing, setSyncing] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
+
+  // Generate a proper UUID v4
+  const generateUUID = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  // Migrate old timestamp-based IDs to proper UUIDs
+  const migrateOldIds = (profiles: CoachProfile[]): CoachProfile[] => {
+    const idMap = new Map<string, string>()
+    
+    return profiles.map(profile => {
+      // Check if profile ID needs migration
+      const needsMigration = profile.id.startsWith('profile_') || 
+                           profile.id.startsWith('student_') || 
+                           profile.id.startsWith('group_') ||
+                           profile.id.startsWith('attendance_') ||
+                           profile.id.startsWith('makeup_') ||
+                           profile.id.startsWith('term_')
+      
+      if (needsMigration) {
+        const newProfileId = generateUUID()
+        idMap.set(profile.id, newProfileId)
+        
+        // Migrate profile
+        const migratedProfile = {
+          ...profile,
+          id: newProfileId,
+          students: profile.students.map(student => {
+            const newStudentId = generateUUID()
+            idMap.set(student.id, newStudentId)
+            
+            return {
+              ...student,
+              id: newStudentId
+            }
+          }),
+          groups: profile.groups.map(group => {
+            const newGroupId = generateUUID()
+            idMap.set(group.id, newGroupId)
+            
+            return {
+              ...group,
+              id: newGroupId,
+              studentIds: group.studentIds.map(oldId => idMap.get(oldId) || oldId)
+            }
+          }),
+          attendanceRecords: profile.attendanceRecords.map(record => ({
+            ...record,
+            id: generateUUID(),
+            studentId: idMap.get(record.studentId) || record.studentId,
+            groupId: idMap.get(record.groupId) || record.groupId
+          })),
+          makeupSessions: profile.makeupSessions.map(session => ({
+            ...session,
+            id: generateUUID(),
+            studentId: idMap.get(session.studentId) || session.studentId,
+            originalGroupId: idMap.get(session.originalGroupId) || session.originalGroupId
+          })),
+          completedMakeupSessions: profile.completedMakeupSessions.map(session => ({
+            ...session,
+            id: generateUUID(),
+            studentId: idMap.get(session.studentId) || session.studentId,
+            groupId: idMap.get(session.groupId) || session.groupId
+          })),
+          archivedTerms: profile.archivedTerms.map(term => ({
+            ...term,
+            id: generateUUID(),
+            attendanceRecords: term.attendanceRecords.map(record => ({
+              ...record,
+              id: generateUUID(),
+              studentId: idMap.get(record.studentId) || record.studentId,
+              groupId: idMap.get(record.groupId) || record.groupId
+            })),
+            studentSnapshot: term.studentSnapshot.map(student => ({
+              ...student,
+              id: idMap.get(student.id) || student.id
+            })),
+            groupSnapshot: term.groupSnapshot.map(group => ({
+              ...group,
+              id: idMap.get(group.id) || group.id,
+              studentIds: group.studentIds.map(oldId => idMap.get(oldId) || oldId)
+            }))
+          }))
+        }
+        
+        console.log("🔄 Migrated profile:", profile.name, "from", profile.id, "to", newProfileId)
+        return migratedProfile
+      }
+      
+      return profile
+    })
+  }
 
   // Load data from cloud
   const loadFromCloud = async (): Promise<CoachProfile[]> => {
@@ -176,6 +285,7 @@ export function useCloudSync(user: User | null) {
             type: m.type,
             completedDate: m.completed_date,
           })),
+          makeupSessions: [], // Initialize empty array for makeup sessions
         }
 
         cloudProfiles.push(cloudProfile)
@@ -200,9 +310,15 @@ export function useCloudSync(user: User | null) {
       return
     }
 
+    // Migrate old IDs to proper UUIDs
+    const migratedProfiles = migrateOldIds(profiles)
+    if (migratedProfiles.length !== profiles.length) {
+      console.log("🔄 Data migration completed - old timestamp IDs converted to UUIDs")
+    }
+
     console.log("🔄 Starting cloud save...", { 
       userEmail: user.email, 
-      profilesCount: profiles.length 
+      profilesCount: migratedProfiles.length 
     })
     setSyncing(true)
     try {
@@ -218,7 +334,7 @@ export function useCloudSync(user: User | null) {
       } else {
         console.log("✅ Database connection test successful")
       }
-      for (const profile of profiles) {
+      for (const profile of migratedProfiles) {
         console.log("🔄 Saving profile:", { 
           profileId: profile.id, 
           profileName: profile.name,
