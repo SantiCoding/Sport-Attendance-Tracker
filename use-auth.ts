@@ -19,9 +19,16 @@ export function useAuth() {
       try {
         // Handle OAuth hash fragment tokens
         if (typeof window !== 'undefined' && window.location.hash) {
+          console.log("Found hash fragment:", window.location.hash.substring(0, 100) + "...")
           const hashParams = new URLSearchParams(window.location.hash.substring(1))
           const accessToken = hashParams.get('access_token')
           const refreshToken = hashParams.get('refresh_token')
+          
+          console.log("Extracted tokens:", { 
+            hasAccessToken: !!accessToken, 
+            hasRefreshToken: !!refreshToken,
+            accessTokenLength: accessToken?.length || 0
+          })
           
           if (accessToken && refreshToken) {
             console.log("Processing OAuth tokens from hash fragment")
@@ -38,10 +45,15 @@ export function useAuth() {
                 setUser(data.session.user)
                 // Clear the hash fragment
                 window.history.replaceState({}, '', '/')
+                console.log("Cleared hash fragment, user should now be signed in")
+                // Force a page refresh to ensure everything updates
+                window.location.reload()
               }
             } catch (error) {
               console.error("Error processing OAuth tokens:", error)
             }
+          } else {
+            console.log("No valid tokens found in hash fragment")
           }
         }
 
