@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -120,6 +120,7 @@ export default function TennisTracker() {
   const { user, loading, signInWithGoogle, signOut, isSupabaseConfigured } = useAuth()
   const { loadFromCloud, saveToCloud, syncing } = useCloudSync(user)
   const [isGuestMode, setIsGuestMode] = useState(false)
+  const hasLoadedData = useRef(false)
   const [profiles, setProfiles] = useState<CoachProfile[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<string>("")
   const [activeTab, setActiveTab] = useState("students")
@@ -244,6 +245,8 @@ export default function TennisTracker() {
 
   // Load profiles from cloud or localStorage on component mount
   useEffect(() => {
+    if (hasLoadedData.current) return // Prevent multiple loads
+    
     const loadData = async () => {
       if (user && isSupabaseConfigured) {
         // Load from cloud when signed in
@@ -285,10 +288,11 @@ export default function TennisTracker() {
           setCurrentProfileId(savedCurrentProfile)
         }
       }
+      hasLoadedData.current = true
     }
 
     loadData()
-  }, [user, isSupabaseConfigured, loadFromCloud])
+  }, [user?.id, isSupabaseConfigured]) // Remove loadFromCloud from dependencies
 
   // Save profiles to cloud or localStorage whenever they change
   useEffect(() => {
@@ -302,7 +306,7 @@ export default function TennisTracker() {
         localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
       }
     }
-  }, [profiles, user, isSupabaseConfigured, saveToCloud])
+  }, [profiles, user?.id, isSupabaseConfigured]) // Remove saveToCloud from dependencies
 
   // Save current profile ID to localStorage
   useEffect(() => {
