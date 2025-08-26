@@ -262,14 +262,19 @@ export default function TennisTracker() {
         }
       } else {
         // Load from localStorage when not signed in or in guest mode
-        console.log("📂 Loading data from localStorage...", { isGuestMode: !user && isGuestMode })
+        console.log("📂 Loading data from localStorage...", { 
+          isGuestMode: !user && isGuestMode,
+          user: !!user,
+          isSupabaseConfigured
+        })
         const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
         const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
 
         console.log("📂 Found saved data:", { 
           hasProfiles: !!savedProfiles, 
           hasCurrentProfile: !!savedCurrentProfile,
-          profilesLength: savedProfiles ? JSON.parse(savedProfiles).length : 0
+          profilesLength: savedProfiles ? JSON.parse(savedProfiles).length : 0,
+          savedProfilesRaw: savedProfiles ? savedProfiles.substring(0, 100) + "..." : "null"
         })
 
         if (savedProfiles) {
@@ -307,7 +312,15 @@ export default function TennisTracker() {
 
   // Save profiles to cloud or localStorage whenever they change
   useEffect(() => {
-    if (profiles.length > 0) {
+    console.log("🔄 Save effect triggered:", { 
+      profilesLength: profiles.length, 
+      user: !!user, 
+      isSupabaseConfigured,
+      isGuestMode: !user && isGuestMode
+    })
+    
+    // Always save when we have profiles, or when in guest mode (even with empty profiles)
+    if (profiles.length > 0 || (!user && isGuestMode)) {
       if (user && isSupabaseConfigured) {
         // Save to cloud when signed in
         console.log("🔄 Saving data to cloud...", { 
