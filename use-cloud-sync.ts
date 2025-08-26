@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import type { User } from "@supabase/supabase-js"
-import { supabase, isSupabaseConfigured } from "@/lib/supabase"
+import { supabase, isSupabaseConfigured } from "./supabase"
 
 // Types
 interface Student {
