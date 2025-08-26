@@ -55,10 +55,19 @@ export function useAuth() {
     }
 
     try {
+      // Use the Vercel domain for production, fallback to current origin
+      const redirectUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://tennis-tracker-five.vercel.app/auth/callback'
+        : `${window.location.origin}/auth/callback`
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       })
       if (error) {

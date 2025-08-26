@@ -1269,6 +1269,37 @@ export default function TennisTracker() {
 
   return (
     <div className="min-h-screen pb-40 animate-fade-in-up">
+      {/* Error Banner */}
+      {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') && (
+        <div className="p-4">
+          <div className="max-w-7xl mx-auto">
+            <Card className="glass-card bg-red-900/20 border-red-500/30">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                    <div>
+                      <p className="text-red-200 font-medium">Sign-in Error</p>
+                      <p className="text-red-300/80 text-sm">
+                        {decodeURIComponent(new URLSearchParams(window.location.search).get('error') || '')}
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => window.history.replaceState({}, '', '/')}
+                    size="sm"
+                    variant="outline"
+                    className="glass-button text-primary-white border-white/20"
+                  >
+                    Dismiss
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       {/* Guest Mode Banner */}
       {isGuestMode && !user && (
         <div className="p-4">

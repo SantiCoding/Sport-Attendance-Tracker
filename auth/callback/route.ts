@@ -7,6 +7,8 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error")
   const errorDescription = searchParams.get("error_description")
 
+  console.log("Auth callback received:", { code: !!code, error, errorDescription })
+
   if (error) {
     console.error("OAuth error:", error, errorDescription)
     // Redirect to main app with error
@@ -15,6 +17,7 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     try {
+      console.log("Exchanging code for session...")
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
       
       if (exchangeError) {
@@ -24,6 +27,13 @@ export async function GET(request: NextRequest) {
 
       if (data.session) {
         console.log("Successfully signed in:", data.session.user.email)
+        // Set a cookie to indicate successful sign-in
+        const response = NextResponse.redirect(new URL("/", request.url))
+        response.cookies.set("auth_success", "true", { maxAge: 60, httpOnly: false })
+        return response
+      } else {
+        console.error("No session data received")
+        return NextResponse.redirect(new URL(`/?error=${encodeURIComponent("No session data received")}`, request.url))
       }
     } catch (error) {
       console.error("Unexpected error during auth callback:", error)
@@ -31,6 +41,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Redirect to the main app
+  // No code or error, redirect to main app
+  console.log("No code or error in callback, redirecting to main app")
   return NextResponse.redirect(new URL("/", request.url))
 }
