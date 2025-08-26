@@ -117,6 +117,7 @@ export default function TennisTracker() {
   console.log("🎾 Tennis Tracker - Latest version loaded with glass-delete-button styling - FORCE DEPLOY");
   const { toast } = useToast()
   const { user, loading, signInWithGoogle, signOut, isSupabaseConfigured } = useAuth()
+  const [isGuestMode, setIsGuestMode] = useState(false)
   const [profiles, setProfiles] = useState<CoachProfile[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<string>("")
   const [activeTab, setActiveTab] = useState("students")
@@ -1149,7 +1150,7 @@ export default function TennisTracker() {
     toast(`✅ Make-up session completed for ${student.name}`, "success")
   }
 
-  if (profiles.length === 0) {
+  if (profiles.length === 0 && !isGuestMode) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in-up">
         <Card className="glass-card w-full max-w-md">
@@ -1160,7 +1161,7 @@ export default function TennisTracker() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!user ? (
+            {!user && !isGuestMode ? (
               <>
                 <Button 
                   onClick={signInWithGoogle} 
@@ -1184,6 +1185,29 @@ export default function TennisTracker() {
                     </>
                   )}
                 </Button>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-white/20" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-black px-2 text-secondary-white">or</span>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={() => setIsGuestMode(true)}
+                  variant="outline"
+                  className="glass-button w-full text-primary-white border-white/20"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Continue as Guest
+                </Button>
+
+                <p className="text-xs text-tertiary-white text-center">
+                  Guest mode stores data locally. Sign in to sync across devices.
+                </p>
+
                 {!isSupabaseConfigured && (
                   <p className="text-red-400 text-sm text-center">
                     ⚠️ Supabase not configured. Please check your environment variables.
@@ -1193,8 +1217,17 @@ export default function TennisTracker() {
             ) : (
               <>
                 <div className="text-center mb-4">
-                  <p className="text-secondary-white mb-2">Signed in as:</p>
-                  <p className="text-primary-white font-medium">{user.email}</p>
+                  {user ? (
+                    <>
+                      <p className="text-secondary-white mb-2">Signed in as:</p>
+                      <p className="text-primary-white font-medium">{user.email}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-secondary-white mb-2">Guest Mode</p>
+                      <p className="text-primary-white font-medium">Local Storage Only</p>
+                    </>
+                  )}
                 </div>
                 <div>
                   <Label className="text-secondary-white">Coach Name</Label>
@@ -1209,13 +1242,23 @@ export default function TennisTracker() {
                   <User className="h-4 w-4 mr-2" />
                   Create Profile
                 </Button>
-                <Button 
-                  onClick={signOut} 
-                  variant="outline" 
-                  className="glass-button w-full text-primary-white border-white/20"
-                >
-                  Sign Out
-                </Button>
+                {user ? (
+                  <Button 
+                    onClick={signOut} 
+                    variant="outline" 
+                    className="glass-button w-full text-primary-white border-white/20"
+                  >
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => setIsGuestMode(false)}
+                    variant="outline" 
+                    className="glass-button w-full text-primary-white border-white/20"
+                  >
+                    Back to Sign In
+                  </Button>
+                )}
               </>
             )}
           </CardContent>
@@ -1226,6 +1269,35 @@ export default function TennisTracker() {
 
   return (
     <div className="min-h-screen pb-40 animate-fade-in-up">
+      {/* Guest Mode Banner */}
+      {isGuestMode && !user && (
+        <div className="p-4">
+          <div className="max-w-7xl mx-auto">
+            <Card className="glass-card bg-yellow-900/20 border-yellow-500/30">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                    <div>
+                      <p className="text-yellow-200 font-medium">Guest Mode</p>
+                      <p className="text-yellow-300/80 text-sm">Data stored locally only. Sign in to sync across devices.</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={signInWithGoogle}
+                    size="sm"
+                    className="glass-button text-primary-white"
+                    disabled={loading}
+                  >
+                    {loading ? "Signing in..." : "Sign In"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="p-4">
         <div className="max-w-7xl mx-auto">
