@@ -193,6 +193,8 @@ export function useCloudSync(user: User | null) {
 
   // Save data to cloud
   const saveToCloud = async (profiles: CoachProfile[]) => {
+    console.log("🚀 NEW VERSION DEPLOYED - Enhanced error logging active!")
+    
     if (!user || !isSupabaseConfigured) {
       console.log("❌ Cannot save to cloud:", { user: !!user, isSupabaseConfigured })
       return
@@ -246,6 +248,12 @@ export function useCloudSync(user: User | null) {
             updated_at: new Date().toISOString(),
           })
           console.error("❌ Full error object:", JSON.stringify(profileError, null, 2))
+          
+          // Simple error logging that should definitely show up
+          console.error("❌ ERROR MESSAGE:", profileError.message || "No message")
+          console.error("❌ ERROR CODE:", profileError.code || "No code")
+          console.error("❌ ERROR DETAILS:", profileError.details || "No details")
+          
           throw profileError
         }
         console.log("✅ Profile saved successfully")
