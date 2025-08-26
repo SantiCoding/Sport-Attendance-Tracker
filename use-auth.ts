@@ -17,45 +17,53 @@ export function useAuth() {
       }
 
       try {
-        // Handle OAuth hash fragment tokens
-        if (typeof window !== 'undefined' && window.location.hash) {
-          console.log("Found hash fragment:", window.location.hash.substring(0, 100) + "...")
-          const hashParams = new URLSearchParams(window.location.hash.substring(1))
-          const accessToken = hashParams.get('access_token')
-          const refreshToken = hashParams.get('refresh_token')
-          
-          console.log("Extracted tokens:", { 
-            hasAccessToken: !!accessToken, 
-            hasRefreshToken: !!refreshToken,
-            accessTokenLength: accessToken?.length || 0
-          })
-          
-          if (accessToken && refreshToken) {
-            console.log("Processing OAuth tokens from hash fragment")
-            try {
-              const { data, error } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-              })
-              
-              if (error) {
-                console.error("Error setting session from tokens:", error)
-              } else if (data.session) {
-                console.log("Successfully set session from OAuth tokens")
-                setUser(data.session.user)
-                // Clear the hash fragment
-                window.history.replaceState({}, '', '/')
-                console.log("Cleared hash fragment, user should now be signed in")
-                // Force a page refresh to ensure everything updates
-                window.location.reload()
+        // Handle OAuth hash fragment tokens - run immediately
+        const processHashTokens = async () => {
+          if (typeof window !== 'undefined' && window.location.hash) {
+            console.log("🔍 Found hash fragment:", window.location.hash.substring(0, 100) + "...")
+            const hashParams = new URLSearchParams(window.location.hash.substring(1))
+            const accessToken = hashParams.get('access_token')
+            const refreshToken = hashParams.get('refresh_token')
+            
+            console.log("🔑 Extracted tokens:", { 
+              hasAccessToken: !!accessToken, 
+              hasRefreshToken: !!refreshToken,
+              accessTokenLength: accessToken?.length || 0
+            })
+            
+            if (accessToken && refreshToken) {
+              console.log("⚡ Processing OAuth tokens from hash fragment")
+              try {
+                const { data, error } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                })
+                
+                if (error) {
+                  console.error("❌ Error setting session from tokens:", error)
+                } else if (data.session) {
+                  console.log("✅ Successfully set session from OAuth tokens")
+                  setUser(data.session.user)
+                  // Clear the hash fragment
+                  window.history.replaceState({}, '', '/')
+                  console.log("🧹 Cleared hash fragment, user should now be signed in")
+                  // Force a page refresh to ensure everything updates
+                  setTimeout(() => {
+                    console.log("🔄 Refreshing page...")
+                    window.location.reload()
+                  }, 1000)
+                }
+              } catch (error) {
+                console.error("❌ Error processing OAuth tokens:", error)
               }
-            } catch (error) {
-              console.error("Error processing OAuth tokens:", error)
+            } else {
+              console.log("⚠️ No valid tokens found in hash fragment")
             }
-          } else {
-            console.log("No valid tokens found in hash fragment")
           }
         }
+        
+        // Run immediately
+        processHashTokens()
 
         // Get initial session
         const { data, error } = await supabase.auth.getSession()
