@@ -136,10 +136,10 @@ export function useAuth() {
     }
 
     try {
-      // Use the Vercel domain for production, fallback to current origin
+      // Redirect to the main app - we'll handle tokens there
       const redirectUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://tennis-tracker-five.vercel.app/auth/callback'
-        : `${window.location.origin}/auth/callback`
+        ? 'https://tennis-tracker-five.vercel.app/'
+        : `${window.location.origin}/`
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
