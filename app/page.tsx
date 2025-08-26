@@ -121,6 +121,7 @@ export default function TennisTracker() {
   const { loadFromCloud, saveToCloud, syncing } = useCloudSync(user)
   const [isGuestMode, setIsGuestMode] = useState(false)
   const hasLoadedData = useRef(false)
+  const hasLoadedFromCloudThisSession = useRef(false)
   const [profiles, setProfiles] = useState<CoachProfile[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<string>("")
   const [activeTab, setActiveTab] = useState("students")
@@ -257,6 +258,7 @@ export default function TennisTracker() {
           setProfiles(cloudProfiles)
           setCurrentProfileId(cloudProfiles[0].id)
           console.log("✅ Data loaded from cloud")
+          hasLoadedFromCloudThisSession.current = true
         } else {
           console.log("📄 No cloud data found, starting fresh")
           setProfiles([])
@@ -326,8 +328,13 @@ export default function TennisTracker() {
     })
     
     // Always save when we have profiles, or when in guest mode (even with empty profiles)
+    // When signed in, only save to cloud after we've loaded from cloud at least once in this session
     if (profiles.length > 0 || (!user && isGuestMode)) {
       if (user && isSupabaseConfigured) {
+        if (!hasLoadedFromCloudThisSession.current) {
+          console.log("⏭️ Skipping cloud save until initial cloud load completes to avoid duplicates")
+          return
+        }
         // Save to cloud when signed in
         console.log("🔄 Saving data to cloud...", { 
           userEmail: user.email, 
