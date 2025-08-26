@@ -204,6 +204,18 @@ export function useCloudSync(user: User | null) {
     })
     setSyncing(true)
     try {
+      // Test database connection first
+      console.log("🔍 Testing database connection...")
+      const { data: testData, error: testError } = await supabase
+        .from("coach_profiles")
+        .select("count")
+        .limit(1)
+      
+      if (testError) {
+        console.error("❌ Database connection test failed:", testError)
+      } else {
+        console.log("✅ Database connection test successful")
+      }
       for (const profile of profiles) {
         console.log("🔄 Saving profile:", { 
           profileId: profile.id, 
@@ -221,13 +233,19 @@ export function useCloudSync(user: User | null) {
         })
 
         if (profileError) {
-          console.error("❌ Profile save error:", profileError)
+          console.error("❌ Profile save error details:", {
+            message: profileError.message,
+            details: profileError.details,
+            hint: profileError.hint,
+            code: profileError.code
+          })
           console.error("❌ Profile data being sent:", {
             id: profile.id,
             user_id: user.id,
             name: profile.name,
             updated_at: new Date().toISOString(),
           })
+          console.error("❌ Full error object:", JSON.stringify(profileError, null, 2))
           throw profileError
         }
         console.log("✅ Profile saved successfully")
