@@ -249,11 +249,15 @@ export default function TennisTracker() {
     // Only load if we haven't loaded data for the current user yet
     if (hasLoadedData.current) return
     
+    let isMounted = true
+    
     const loadData = async () => {
       if (user && isSupabaseConfigured) {
         // Load from cloud when signed in
         console.log("🔄 Loading data from cloud...")
         const cloudProfiles = await loadFromCloud()
+        if (!isMounted) return
+        
         if (cloudProfiles.length > 0) {
           setProfiles(cloudProfiles)
           setCurrentProfileId(cloudProfiles[0].id)
@@ -293,24 +297,34 @@ export default function TennisTracker() {
               makeupSessions: profile.makeupSessions || [],
             }))
             console.log("✅ Loaded profiles from localStorage:", parsedProfiles.length)
-            setProfiles(parsedProfiles)
+            if (isMounted) {
+              setProfiles(parsedProfiles)
+            }
           } catch (error) {
             console.error("Error parsing saved profiles:", error)
-            setProfiles([])
+            if (isMounted) {
+              setProfiles([])
+            }
           }
         } else {
           console.log("📂 No saved profiles found in localStorage")
         }
 
-        if (savedCurrentProfile) {
+        if (savedCurrentProfile && isMounted) {
           console.log("✅ Loaded current profile ID from localStorage:", savedCurrentProfile)
           setCurrentProfileId(savedCurrentProfile)
         }
       }
-      hasLoadedData.current = true
+      if (isMounted) {
+        hasLoadedData.current = true
+      }
     }
 
     loadData()
+    
+    return () => {
+      isMounted = false
+    }
   }, [user?.id, isSupabaseConfigured]) // Remove loadFromCloud from dependencies
 
   // Reset data loading flag when user changes
@@ -324,8 +338,15 @@ export default function TennisTracker() {
       profilesLength: profiles.length, 
       user: !!user, 
       isSupabaseConfigured,
-      isGuestMode: !user && isGuestMode
+      isGuestMode: !user && isGuestMode,
+      hasLoadedFromCloud: hasLoadedFromCloudThisSession.current
     })
+    
+    // Skip saving if we haven't finished initial data loading yet
+    if (!hasLoadedData.current) {
+      console.log("⏭️ Skipping save - initial data loading not complete")
+      return
+    }
     
     // Always save when we have profiles, or when in guest mode (even with empty profiles)
     // When signed in, only save to cloud after we've loaded from cloud at least once in this session
@@ -378,6 +399,13 @@ export default function TennisTracker() {
   const createProfile = () => {
     if (!newProfileName.trim()) {
       toast("❌ Name required", "error")
+      return
+    }
+
+    // Check if a profile with this name already exists
+    const existingProfile = profiles.find(p => p.name.toLowerCase() === newProfileName.trim().toLowerCase())
+    if (existingProfile) {
+      toast(`❌ A profile named "${newProfileName.trim()}" already exists`, "error")
       return
     }
 
