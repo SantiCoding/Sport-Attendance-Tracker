@@ -1182,14 +1182,18 @@ export default function TennisTracker() {
     toast(`✅ Make-up session completed for ${student.name}`, "success")
   }
 
-  if (profiles.length === 0 && !isGuestMode) {
+  // Show welcome page when not signed in (regardless of local data)
+  if (!user && !isGuestMode) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in-up">
         <Card className="glass-card w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle className="text-primary-white text-2xl">Welcome to Attendance Tracker</CardTitle>
             <p className="text-secondary-white">
-              {user ? `Welcome back, ${user.email}!` : "Sign in to create your coach profile"}
+              {profiles.length > 0 
+                ? "Sign in to sync your data across devices" 
+                : "Sign in to create your coach profile"
+              }
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -1213,7 +1217,7 @@ export default function TennisTracker() {
                         <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                         <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                       </svg>
-                      Sign in with Google
+                      {profiles.length > 0 ? "Sign in to Sync Data" : "Sign in with Google"}
                     </>
                   )}
                 </Button>
@@ -1237,7 +1241,10 @@ export default function TennisTracker() {
                 </Button>
 
                 <p className="text-xs text-tertiary-white text-center">
-                  Guest mode stores data locally. Sign in to sync across devices.
+                  {profiles.length > 0 
+                    ? "You have local data. Sign in to sync it across all your devices." 
+                    : "Guest mode stores data locally. Sign in to sync across devices."
+                  }
                 </p>
 
                 {!isSupabaseConfigured && (
