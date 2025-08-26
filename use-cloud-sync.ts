@@ -99,13 +99,19 @@ export function useCloudSync(user: User | null) {
     const idMap = new Map<string, string>()
     
     return profiles.map(profile => {
-      // Check if profile ID needs migration
+      // Check if profile ID needs migration - only migrate if it's a timestamp-based ID
       const needsMigration = profile.id.startsWith('profile_') || 
                            profile.id.startsWith('student_') || 
                            profile.id.startsWith('group_') ||
                            profile.id.startsWith('attendance_') ||
                            profile.id.startsWith('makeup_') ||
                            profile.id.startsWith('term_')
+      
+      // If profile already has a proper UUID, don't migrate it
+      if (!needsMigration) {
+        console.log("✅ Profile already has proper UUID, skipping migration:", profile.name)
+        return profile
+      }
       
       if (needsMigration) {
         const newProfileId = generateUUID()
