@@ -259,13 +259,90 @@ export default function TennisTracker() {
         if (!isMounted) return
         
         if (cloudProfiles.length > 0) {
-          setProfiles(cloudProfiles)
+          // Dedupe profiles from cloud by id then by name (keep the one with most students)
+          const seenIds = new Set<string>()
+          const dedupedById: CoachProfile[] = []
+          for (const p of cloudProfiles as any[]) {
+            if (p && p.id && !seenIds.has(p.id)) {
+              seenIds.add(p.id)
+              dedupedById.push(p)
+            }
+          }
+          const byName = new Map<string, CoachProfile>()
+          for (const p of dedupedById) {
+            const key = (p.name || "").trim().toLowerCase()
+            const current = byName.get(key)
+            if (!current || (p.students?.length || 0) > (current.students?.length || 0)) {
+              byName.set(key, p)
+            }
+          }
+          const finalCloudProfiles = Array.from(byName.values()) as any[]
+          setProfiles(finalCloudProfiles as any)
           setCurrentProfileId(cloudProfiles[0].id)
           console.log("✅ Data loaded from cloud")
           hasLoadedFromCloudThisSession.current = true
         } else {
-          console.log("📄 No cloud data found, starting fresh")
-          setProfiles([])
+          // First-time sign-in migration: if cloud is empty, import guest/local data ONCE
+          try {
+            const migrationFlagKey = `tennisTrackerMigratedToUser_${user.id}`
+            const alreadyMigrated = localStorage.getItem(migrationFlagKey) === 'true'
+            const savedProfilesRaw = localStorage.getItem("tennisTrackerProfiles")
+            const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
+
+            if (!alreadyMigrated && savedProfilesRaw) {
+              const parsedProfiles: CoachProfile[] = JSON.parse(savedProfilesRaw).map((profile: any) => ({
+                ...profile,
+                students: profile.students || [],
+                groups: profile.groups || [],
+                attendanceRecords: profile.attendanceRecords || [],
+                archivedTerms: profile.archivedTerms || [],
+                completedMakeupSessions: profile.completedMakeupSessions || [],
+                makeupSessions: profile.makeupSessions || [],
+              }))
+
+              // Dedupe by id then by name (keep larger dataset)
+              const seenIds = new Set<string>()
+              const dedupedById: CoachProfile[] = []
+              for (const p of parsedProfiles) {
+                if (p && p.id && !seenIds.has(p.id)) {
+                  seenIds.add(p.id)
+                  dedupedById.push(p)
+                }
+              }
+              const byName = new Map<string, CoachProfile>()
+              for (const p of dedupedById) {
+                const key = (p.name || "").trim().toLowerCase()
+                const current = byName.get(key)
+                if (!current || (p.students?.length || 0) > (current.students?.length || 0)) {
+                  byName.set(key, p)
+                }
+              }
+              const finalProfiles = Array.from(byName.values()) as any[]
+
+              if (finalProfiles.length > 0) {
+                console.log("🛟 Migrating guest data to cloud for this user", { count: finalProfiles.length })
+                setProfiles(finalProfiles as any)
+                setCurrentProfileId(savedCurrentProfile || finalProfiles[0].id)
+                hasLoadedFromCloudThisSession.current = true
+                // Seed cloud once
+                saveToCloud(finalProfiles)
+                  .then(() => {
+                    localStorage.setItem(migrationFlagKey, 'true')
+                    console.log("✅ Guest data migration complete")
+                  })
+                  .catch((e) => console.error("❌ Error migrating guest data to cloud:", e))
+              } else {
+                console.log("📄 No guest data to migrate. Starting fresh for this user.")
+                setProfiles([])
+              }
+            } else {
+              console.log("📄 Cloud empty and no eligible guest data to migrate (or already migrated). Starting fresh.")
+              setProfiles([])
+            }
+          } catch (e) {
+            console.error("❌ Error during first-time migration:", e)
+            setProfiles([])
+          }
         }
       } else {
         // Load from localStorage when not signed in or in guest mode
@@ -296,9 +373,29 @@ export default function TennisTracker() {
               completedMakeupSessions: profile.completedMakeupSessions || [],
               makeupSessions: profile.makeupSessions || [],
             }))
-            console.log("✅ Loaded profiles from localStorage:", parsedProfiles.length)
+
+            // Dedupe as a safeguard
+            const seenIds = new Set<string>()
+            const dedupedById: CoachProfile[] = []
+            for (const p of parsedProfiles) {
+              if (p && p.id && !seenIds.has(p.id)) {
+                seenIds.add(p.id)
+                dedupedById.push(p)
+              }
+            }
+            const byName = new Map<string, CoachProfile>()
+            for (const p of dedupedById) {
+              const key = (p.name || "").trim().toLowerCase()
+              const current = byName.get(key)
+              if (!current || (p.students?.length || 0) > (current.students?.length || 0)) {
+                byName.set(key, p)
+              }
+            }
+            const finalProfiles = Array.from(byName.values()) as any[]
+
+            console.log("✅ Loaded profiles from localStorage:", finalProfiles.length)
             if (isMounted) {
-              setProfiles(parsedProfiles)
+              setProfiles(finalProfiles as any)
             }
           } catch (error) {
             console.error("Error parsing saved profiles:", error)
@@ -358,11 +455,11 @@ export default function TennisTracker() {
         }
         // Save to cloud when signed in
         console.log("🔄 Saving data to cloud...", { 
-          userEmail: user.email, 
+          userEmail: (user as any)?.email, 
           profilesCount: profiles.length,
           firstProfile: profiles[0]?.name 
         })
-        saveToCloud(profiles).then(() => {
+        saveToCloud(profiles as any).then(() => {
           console.log("✅ Data saved to cloud successfully")
         }).catch((error) => {
           console.error("❌ Error saving to cloud:", error)
@@ -1209,14 +1306,14 @@ export default function TennisTracker() {
       makeupSessions: student.makeupSessions,
       attendanceHistory: studentAttendance.map((record) => ({
         date: record.date,
-        status: record.status,
+        status: record.status as any,
         groupName: currentProfile.groups.find((g) => g.id === record.groupId)?.name || "Unknown Group",
-        timeAdjustment: record.timeAdjustment || 0,
+        timeAdjustment: (record as any).timeAdjustment || 0,
       })),
       totalSessions: studentAttendance.length,
       presentSessions: studentAttendance.filter((r) => r.status === "present").length,
       absentSessions: studentAttendance.filter((r) => r.status === "absent").length,
-      cancelledSessions: studentAttendance.filter((r) => r.status === "cancelled").length,
+      cancelledSessions: studentAttendance.filter((r) => (r as any).status === "cancelled").length,
     }
 
     const dataStr = JSON.stringify(exportData, null, 2)
@@ -1344,10 +1441,10 @@ export default function TennisTracker() {
             ) : (
               <>
                 <div className="text-center mb-4">
-                  {user ? (
+                  {(user as any) ? (
                     <>
                       <p className="text-secondary-white mb-2">Signed in as:</p>
-                      <p className="text-primary-white font-medium">{user.email}</p>
+                      <p className="text-primary-white font-medium">{(user as any)?.email || ""}</p>
                     </>
                   ) : (
                     <>
