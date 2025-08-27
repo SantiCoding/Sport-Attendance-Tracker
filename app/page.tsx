@@ -439,8 +439,35 @@ export default function TennisTracker() {
                 hasLoadedFromCloudThisSession.current = true
               }
             } else {
-              console.log("📄 Cloud empty and no eligible guest data to migrate (or already migrated). Starting fresh.")
-              setProfiles([])
+              console.log("📄 Cloud empty and no eligible guest data to migrate (or already migrated). Checking localStorage...")
+              // Check localStorage as fallback even when cloud is empty
+              const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
+              const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
+              
+              if (savedProfiles) {
+                try {
+                  const parsedProfiles = JSON.parse(savedProfiles).map((profile: any) => ({
+                    ...profile,
+                    students: profile.students || [],
+                    groups: profile.groups || [],
+                    attendanceRecords: profile.attendanceRecords || [],
+                    archivedTerms: profile.archivedTerms || [],
+                    completedMakeupSessions: profile.completedMakeupSessions || [],
+                    makeupSessions: profile.makeupSessions || [],
+                  }))
+                  setProfiles(parsedProfiles as any)
+                  if (savedCurrentProfile) {
+                    setCurrentProfileId(savedCurrentProfile)
+                  }
+                  console.log("✅ Loaded data from localStorage fallback")
+                } catch (parseError) {
+                  console.error("❌ Error parsing localStorage fallback data:", parseError)
+                  setProfiles([])
+                }
+              } else {
+                console.log("📄 No data found anywhere. Starting fresh.")
+                setProfiles([])
+              }
               hasLoadedFromCloudThisSession.current = true
             }
                   } catch (e: any) {
