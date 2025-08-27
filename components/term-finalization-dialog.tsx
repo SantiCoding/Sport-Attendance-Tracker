@@ -81,8 +81,8 @@ export function TermFinalizationDialog({ open, onClose, onFinalize }: TermFinali
               id="term-name"
               value={termName}
               onChange={(e) => setTermName(e.target.value)}
-              placeholder={`e.g., Term 2 – ${currentYear}`}
-              className="glass-input text-primary-white placeholder:text-tertiary-white mt-1"
+              placeholder={`Term 2 – ${currentYear}`}
+              className="glass-input text-primary-white placeholder:text-tertiary-white mt-1 text-sm"
             />
           </div>
 

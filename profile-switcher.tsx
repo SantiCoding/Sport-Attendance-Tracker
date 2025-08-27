@@ -142,7 +142,7 @@ export function ProfileSwitcher({ profiles, currentProfile, setProfiles, setCurr
                 value={newProfileName}
                 onChange={(e) => setNewProfileName(e.target.value)}
                 placeholder="Enter coach name"
-                className="mt-1"
+                className="mt-1 text-sm"
               />
             </div>
           </div>

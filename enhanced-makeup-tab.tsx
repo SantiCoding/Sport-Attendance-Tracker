@@ -529,19 +529,21 @@ export function EnhancedMakeUpTab({ profileData, updateProfile, isActive }: Enha
 
                 return (
                   <div key={session.id} className="glass-card p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <User className="h-4 w-4 text-green-400" />
-                          <h4 className="font-medium text-primary-white">{student?.name}</h4>
-                          <Badge className="bg-green-500/20 text-green-300 border-green-400/30">Completed</Badge>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <User className="h-4 w-4 text-green-400 flex-shrink-0" />
+                          <h4 className="font-medium text-primary-white truncate">{student?.name}</h4>
+                          <Badge className="bg-green-500/20 text-green-300 border-green-400/30 flex-shrink-0">Completed</Badge>
                         </div>
-                        <div className="text-xs text-secondary-white">
-                          <p>
+                        <div className="text-xs text-secondary-white space-y-1">
+                          <p className="break-words">
                             Completed:{" "}
                             {session.completedDate ? format(new Date(session.completedDate), "PPP") : "Unknown"}
                           </p>
-                          {session.completedNotes && <p>Notes: {session.completedNotes}</p>}
+                          {session.completedNotes && (
+                            <p className="break-words">Notes: {session.completedNotes}</p>
+                          )}
                         </div>
                       </div>
                     </div>

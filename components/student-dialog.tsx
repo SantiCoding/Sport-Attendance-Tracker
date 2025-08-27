@@ -117,7 +117,7 @@ export function StudentDialog({ profileData, onUpdateProfile, student, children 
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Enter student name"
-              className="glass-input text-primary-white placeholder:text-tertiary-white mt-1"
+              className="glass-input text-primary-white placeholder:text-tertiary-white mt-1 text-sm"
             />
           </div>
           <div>
@@ -128,8 +128,8 @@ export function StudentDialog({ profileData, onUpdateProfile, student, children 
               id="student-notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Add any notes about this student..."
-              className="glass-input text-primary-white placeholder:text-tertiary-white mt-1"
+              placeholder="Add notes..."
+              className="glass-input text-primary-white placeholder:text-tertiary-white mt-1 text-sm"
             />
           </div>
           <div className="grid grid-cols-3 gap-3">

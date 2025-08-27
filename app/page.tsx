@@ -828,12 +828,15 @@ export default function TennisTracker() {
   const handleSmartSorterConfirm = () => {
     if (!smartSorterPreview || !currentProfile) return
 
+    // Check if this is a new group by looking for it in the current profile
+    const existingGroup = currentProfile.groups.find(g => g.id === smartSorterPreview.group.id)
+    
     const updatedProfile = {
       ...currentProfile,
       students: [...currentProfile.students, ...smartSorterPreview.students],
-      groups: smartSorterPreview.group.id.startsWith("group_")
-        ? [...currentProfile.groups, smartSorterPreview.group]
-        : currentProfile.groups.map((g) => (g.id === smartSorterPreview.group.id ? smartSorterPreview.group : g)),
+      groups: existingGroup 
+        ? currentProfile.groups.map((g) => (g.id === smartSorterPreview.group.id ? smartSorterPreview.group : g))
+        : [...currentProfile.groups, smartSorterPreview.group],
     }
 
     updateProfile(updatedProfile)
@@ -1492,19 +1495,19 @@ export default function TennisTracker() {
   }
 
   return (
-    <div className="min-h-screen pb-40 animate-fade-in-up">
+    <div className="min-h-screen pb-20 sm:pb-40 animate-fade-in-up">
       {/* Error Banner */}
       {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') && (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
           <div className="max-w-7xl mx-auto">
             <Card className="glass-card bg-red-900/20 border-red-500/30">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                    <div>
-                      <p className="text-red-200 font-medium">Sign-in Error</p>
-                      <p className="text-red-300/80 text-sm">
+                                          <div>
+                        <p className="text-red-200 font-medium text-sm sm:text-base">Sign-in Error</p>
+                        <p className="text-red-300/80 text-xs sm:text-sm">
                         {decodeURIComponent(new URLSearchParams(window.location.search).get('error') || '')}
                       </p>
                     </div>
@@ -1513,7 +1516,7 @@ export default function TennisTracker() {
                     onClick={() => window.history.replaceState({}, '', '/')}
                     size="sm"
                     variant="outline"
-                    className="glass-button text-primary-white border-white/20"
+                    className="glass-button text-primary-white border-white/20 text-xs"
                   >
                     Dismiss
                   </Button>
@@ -1526,13 +1529,13 @@ export default function TennisTracker() {
 
       {/* Sync Status Banner */}
       {user && syncing && (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
           <div className="max-w-7xl mx-auto">
             <Card className="glass-card bg-blue-900/20 border-blue-500/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-                  <p className="text-blue-200 font-medium">Syncing data to cloud...</p>
+                                      <p className="text-blue-200 font-medium text-sm sm:text-base">Syncing data to cloud...</p>
                 </div>
               </CardContent>
             </Card>
@@ -1542,22 +1545,22 @@ export default function TennisTracker() {
 
       {/* Guest Mode Banner */}
       {isGuestMode && !user && (
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
           <div className="max-w-7xl mx-auto">
             <Card className="glass-card bg-yellow-900/20 border-yellow-500/30">
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                    <div>
-                      <p className="text-yellow-200 font-medium">Guest Mode</p>
-                      <p className="text-yellow-300/80 text-sm">Data stored locally only. Sign in to sync across devices.</p>
+                                          <div>
+                        <p className="text-yellow-200 font-medium text-sm sm:text-base">Guest Mode</p>
+                        <p className="text-yellow-300/80 text-xs sm:text-sm">Data stored locally only. Sign in to sync across devices.</p>
                     </div>
                   </div>
                   <Button 
                     onClick={signInWithGoogle}
                     size="sm"
-                    className="glass-button text-primary-white"
+                    className="glass-button text-primary-white text-xs"
                     disabled={loading}
                   >
                     {loading ? "Signing in..." : "Sign In"}
@@ -1570,17 +1573,17 @@ export default function TennisTracker() {
       )}
       
       {/* Header */}
-      <div className="p-4">
+      <div className="p-2 sm:p-4">
         <div className="max-w-7xl mx-auto">
-          <Card className="glass-card mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h1 className="text-primary-white text-2xl font-bold">Attendance Tracker</h1>
-                  <p className="text-secondary-white">Created by Santiago González</p>
+          <Card className="glass-card mb-4 sm:mb-6">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                  <div>
+                    <h1 className="text-primary-white text-xl sm:text-2xl font-bold">Attendance Tracker</h1>
+                    <p className="text-secondary-white text-sm sm:text-base">Created by Santiago González</p>
                   <div className="flex items-center gap-2 mt-2">
                     <Select value={currentProfileId} onValueChange={setCurrentProfileId}>
-                      <SelectTrigger className="glass-input text-primary-white w-48">
+                      <SelectTrigger className="glass-input text-primary-white w-40 sm:w-48 text-sm">
                         <SelectValue placeholder="Select coach profile" />
                       </SelectTrigger>
                       <SelectContent className="glass-dropdown">
@@ -1687,12 +1690,12 @@ export default function TennisTracker() {
       </div>
 
       {/* Main Content */}
-      <div className="px-4">
+      <div className="px-2 sm:px-4">
         <div className="max-w-7xl mx-auto">
           {/* Record Attendance Page */}
           {activeTab === "attendance" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between mb-6">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <div className="flex items-center gap-2">
                   <CalendarDays className="h-5 w-5 text-primary-white" />
                   <h2 className="text-primary-white text-xl font-semibold">
@@ -2154,8 +2157,8 @@ export default function TennisTracker() {
 
           {/* Students Page */}
           {activeTab === "students" && currentProfile && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between mb-6">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary-white" />
                   <h2 className="text-primary-white text-xl font-semibold">
@@ -2420,8 +2423,8 @@ export default function TennisTracker() {
                       <Input
                         value={smartSorterGroupName}
                         onChange={(e) => setSmartSorterGroupName(e.target.value)}
-                        placeholder="Enter group name (e.g., 'Monday 5 PM Group')"
-                        className="glass-input text-primary-white placeholder:text-tertiary-white mt-2"
+                        placeholder="Enter group name"
+                        className="glass-input text-primary-white placeholder:text-tertiary-white mt-2 text-sm"
                       />
                       <p className="text-tertiary-white text-xs mt-1">
                         If the group does not exist, it will be created.
@@ -2599,7 +2602,7 @@ export default function TennisTracker() {
 
           {/* Search Page */}
           {activeTab === "search" && currentProfile && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div className="flex items-center gap-2 mb-6">
                 <Search className="h-5 w-5 text-primary-white" />
                 <h2 className="text-primary-white text-xl font-semibold">Student Search</h2>
@@ -2714,9 +2717,9 @@ export default function TennisTracker() {
 
           {/* Make-Up Page */}
           {activeTab === "makeup" && currentProfile && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-6">
-                <Clock className="h-5 w-5 text-primary-white" />
+            <div className="space-y-4 sm:space-y-6">
+                              <div className="flex items-center gap-2 mb-4 sm:mb-6">
+                  <Clock className="h-5 w-5 text-primary-white" />
                 <h2 className="text-primary-white text-xl font-semibold">Make-Up Sessions</h2>
               </div>
 
@@ -2902,8 +2905,8 @@ export default function TennisTracker() {
 
           {/* Reports Tab */}
           {activeTab === "reports" && currentProfile && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-6">
+            <div className="space-y-4 sm:space-y-6">
+                              <div className="flex items-center gap-2 mb-4 sm:mb-6">
                 <BarChart3 className="h-5 w-5 text-primary-white" />
                 <h2 className="text-primary-white text-xl font-semibold">Reports & Analytics</h2>
               </div>

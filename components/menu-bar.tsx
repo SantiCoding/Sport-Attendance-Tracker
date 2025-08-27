@@ -81,8 +81,8 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   if (isMobile) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-[9999] w-full bg-black/20 backdrop-blur-sm">
-        <div className="flex items-center justify-center p-4">
-          <div className="flex items-center gap-2 glass-card py-2 px-4 rounded-full shadow-xl border border-white/20 w-full max-w-md backdrop-blur-md">
+        <div className="flex items-center justify-center p-2 sm:p-4">
+          <div className="flex items-center gap-1 sm:gap-2 glass-card py-2 px-2 sm:px-4 rounded-full shadow-xl border border-white/20 w-full max-w-md backdrop-blur-md">
             {menuItems.map((item) => {
               const isActive = activeTab === item.href
 
@@ -90,7 +90,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                 <motion.div
                   key={item.href}
                   className={cn(
-                    "relative cursor-pointer text-sm font-semibold px-3 py-1 rounded-full transition-all duration-300 flex-1",
+                    "relative cursor-pointer text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full transition-all duration-300 flex-1",
                     "text-white/80 hover:text-white",
                     isActive && "text-white",
                   )}
@@ -98,10 +98,10 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                   whileTap={{ scale: 0.95 }}
                 >
                   <span className="flex flex-col items-center gap-1">
-                    <span className="text-base">
+                    <span className="text-sm sm:text-base">
                       {item.icon}
                     </span>
-                    <span className="text-[10px] leading-tight">
+                    <span className="text-[8px] sm:text-[10px] leading-tight">
                       {item.label}
                     </span>
                   </span>

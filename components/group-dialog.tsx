@@ -141,7 +141,7 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Enter group name"
-              className="glass-input text-primary-white placeholder:text-tertiary-white mt-1"
+              className="glass-input text-primary-white placeholder:text-tertiary-white mt-1 text-sm"
             />
           </div>
 
@@ -202,49 +202,59 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
             </div>
             <div>
               <Label className="text-secondary-white">Time</Label>
-              <Select value={formData.time} onValueChange={(value) => setFormData({ ...formData, time: value })}>
-                <SelectTrigger className="glass-input text-primary-white mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="glass-dropdown">
-                  <SelectItem value="8:00 AM" className="text-primary-white">
-                    8:00 AM
-                  </SelectItem>
-                  <SelectItem value="9:00 AM" className="text-primary-white">
-                    9:00 AM
-                  </SelectItem>
-                  <SelectItem value="10:00 AM" className="text-primary-white">
-                    10:00 AM
-                  </SelectItem>
-                  <SelectItem value="11:00 AM" className="text-primary-white">
-                    11:00 AM
-                  </SelectItem>
-                  <SelectItem value="12:00 PM" className="text-primary-white">
-                    12:00 PM
-                  </SelectItem>
-                  <SelectItem value="1:00 PM" className="text-primary-white">
-                    1:00 PM
-                  </SelectItem>
-                  <SelectItem value="2:00 PM" className="text-primary-white">
-                    2:00 PM
-                  </SelectItem>
-                  <SelectItem value="3:00 PM" className="text-primary-white">
-                    3:00 PM
-                  </SelectItem>
-                  <SelectItem value="4:00 PM" className="text-primary-white">
-                    4:00 PM
-                  </SelectItem>
-                  <SelectItem value="5:00 PM" className="text-primary-white">
-                    5:00 PM
-                  </SelectItem>
-                  <SelectItem value="6:00 PM" className="text-primary-white">
-                    6:00 PM
-                  </SelectItem>
-                  <SelectItem value="7:00 PM" className="text-primary-white">
-                    7:00 PM
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 mt-1">
+                <Select 
+                  value={formData.time.split(':')[0]} 
+                  onValueChange={(hour) => {
+                    const [_, minute, period] = formData.time.split(/[: ]/)
+                    setFormData({ ...formData, time: `${hour}:${minute} ${period}` })
+                  }}
+                >
+                  <SelectTrigger className="glass-input text-primary-white flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="glass-dropdown">
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(hour => (
+                      <SelectItem key={hour} value={hour.toString()} className="text-primary-white">
+                        {hour}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select 
+                  value={formData.time.split(':')[1].split(' ')[0]} 
+                  onValueChange={(minute) => {
+                    const [hour, _, period] = formData.time.split(/[: ]/)
+                    setFormData({ ...formData, time: `${hour}:${minute} ${period}` })
+                  }}
+                >
+                  <SelectTrigger className="glass-input text-primary-white flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="glass-dropdown">
+                    <SelectItem value="00" className="text-primary-white">00</SelectItem>
+                    <SelectItem value="15" className="text-primary-white">15</SelectItem>
+                    <SelectItem value="30" className="text-primary-white">30</SelectItem>
+                    <SelectItem value="45" className="text-primary-white">45</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select 
+                  value={formData.time.split(' ')[1]} 
+                  onValueChange={(period) => {
+                    const [hour, minute] = formData.time.split(':')
+                    const timeWithoutPeriod = minute.split(' ')[0]
+                    setFormData({ ...formData, time: `${hour}:${timeWithoutPeriod} ${period}` })
+                  }}
+                >
+                  <SelectTrigger className="glass-input text-primary-white flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="glass-dropdown">
+                    <SelectItem value="AM" className="text-primary-white">AM</SelectItem>
+                    <SelectItem value="PM" className="text-primary-white">PM</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
