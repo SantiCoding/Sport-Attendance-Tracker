@@ -254,9 +254,10 @@ export default function TennisTracker() {
     const loadData = async () => {
       if (user && isSupabaseConfigured) {
         // Load from cloud when signed in
-        console.log("🔄 Loading data from cloud...")
-        const cloudProfiles = await loadFromCloud()
-        if (!isMounted) return
+        console.log("🔄 Loading data from cloud for user:", user.id, user.email)
+        try {
+          const cloudProfiles = await loadFromCloud()
+          if (!isMounted) return
         
         if (cloudProfiles.length > 0) {
           // Dedupe profiles from cloud by id then by name (keep the one with most students)
@@ -344,6 +345,36 @@ export default function TennisTracker() {
             setProfiles([])
           }
         }
+        } catch (error) {
+          console.error("❌ Error loading from cloud:", error)
+          // If cloud loading fails, fall back to localStorage
+          const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
+          if (savedProfiles) {
+            try {
+              const parsedProfiles = JSON.parse(savedProfiles).map((profile: any) => ({
+                ...profile,
+                students: profile.students || [],
+                groups: profile.groups || [],
+                attendanceRecords: profile.attendanceRecords || [],
+                archivedTerms: profile.archivedTerms || [],
+                completedMakeupSessions: profile.completedMakeupSessions || [],
+                makeupSessions: profile.makeupSessions || [],
+              }))
+              setProfiles(parsedProfiles as any)
+              const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
+              if (savedCurrentProfile) {
+                setCurrentProfileId(savedCurrentProfile)
+              }
+              console.log("🔄 Fallback to localStorage due to cloud loading error")
+            } catch (parseError) {
+              console.error("❌ Error parsing localStorage data:", parseError)
+              setProfiles([])
+            }
+          } else {
+            setProfiles([])
+          }
+          hasLoadedFromCloudThisSession.current = true
+        }
       } else {
         // Load from localStorage when not signed in or in guest mode
         console.log("📂 Loading data from localStorage...", { 
@@ -427,7 +458,20 @@ export default function TennisTracker() {
   // Reset data loading flag when user changes
   useEffect(() => {
     hasLoadedData.current = false
+    hasLoadedFromCloudThisSession.current = false
   }, [user?.id])
+
+  // Ensure data is saved to cloud when user signs in
+  useEffect(() => {
+    if (user && isSupabaseConfigured && hasLoadedFromCloudThisSession.current && profiles.length > 0) {
+      console.log("🔄 User signed in, ensuring data is saved to cloud...")
+      saveToCloud(profiles as any).then(() => {
+        console.log("✅ Data saved to cloud after sign-in")
+      }).catch((error) => {
+        console.error("❌ Error saving to cloud after sign-in:", error)
+      })
+    }
+  }, [user?.id, hasLoadedFromCloudThisSession.current, profiles.length])
 
   // Save profiles to cloud or localStorage whenever they change
   useEffect(() => {
@@ -446,7 +490,7 @@ export default function TennisTracker() {
     }
     
     // Always save when we have profiles, or when in guest mode (even with empty profiles)
-    // When signed in, only save to cloud after we've loaded from cloud at least once in this session
+    // When signed in, save to cloud after we've loaded from cloud at least once in this session
     if (profiles.length > 0 || (!user && isGuestMode)) {
       if (user && isSupabaseConfigured) {
         if (!hasLoadedFromCloudThisSession.current) {
@@ -463,6 +507,9 @@ export default function TennisTracker() {
           console.log("✅ Data saved to cloud successfully")
         }).catch((error) => {
           console.error("❌ Error saving to cloud:", error)
+          // If cloud save fails, also save to localStorage as backup
+          console.log("💾 Saving to localStorage as backup due to cloud save failure")
+          localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
         })
       } else {
         // Save to localStorage when not signed in or in guest mode

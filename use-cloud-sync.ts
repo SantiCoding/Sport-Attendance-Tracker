@@ -30,8 +30,12 @@ interface AttendanceRecord {
   time: string
   groupId: string
   studentId: string
-  status: "present" | "absent"
+  status: "present" | "absent" | "canceled"
   notes: string
+  timeAdjustmentAmount?: string
+  timeAdjustmentType?: "more" | "less"
+  timeAdjustmentReason?: string
+  cancelReason?: string
 }
 
 interface CompletedMakeupSession {
@@ -276,6 +280,10 @@ export function useCloudSync(user: User | null) {
             studentId: a.student_id,
             status: a.status,
             notes: a.notes,
+            timeAdjustmentAmount: a.time_adjustment_amount || undefined,
+            timeAdjustmentType: a.time_adjustment_type as "more" | "less" || undefined,
+            timeAdjustmentReason: a.time_adjustment_reason || undefined,
+            cancelReason: a.cancel_reason || undefined,
           })),
           archivedTerms: (archivedTerms || []).map((t) => ({
             id: t.id,
@@ -437,6 +445,10 @@ export function useCloudSync(user: User | null) {
               student_id: a.studentId,
               status: a.status,
               notes: a.notes,
+              time_adjustment_amount: a.timeAdjustmentAmount,
+              time_adjustment_type: a.timeAdjustmentType,
+              time_adjustment_reason: a.timeAdjustmentReason,
+              cancel_reason: a.cancelReason,
             })),
           )
 
