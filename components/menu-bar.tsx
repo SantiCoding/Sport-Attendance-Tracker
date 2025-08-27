@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { useState, useEffect, useRef } from "react"
+import { motion, PanInfo } from "framer-motion"
 import { Users, CalendarDays, Search, Clock, BarChart3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -66,6 +66,8 @@ interface MenuBarProps {
 export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleResize = () => {
@@ -77,12 +79,53 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
+  const getCurrentTabIndex = () => {
+    return menuItems.findIndex(item => item.href === activeTab)
+  }
+
+  const handleSwipe = (event: any, info: PanInfo) => {
+    if (!isMobile) return
+
+    const threshold = 50 // Minimum distance for swipe
+    const currentIndex = getCurrentTabIndex()
+    
+    if (info.offset.x > threshold && currentIndex > 0) {
+      // Swipe right - go to previous tab
+      const newIndex = currentIndex - 1
+      setActiveTab(menuItems[newIndex].href)
+    } else if (info.offset.x < -threshold && currentIndex < menuItems.length - 1) {
+      // Swipe left - go to next tab
+      const newIndex = currentIndex + 1
+      setActiveTab(menuItems[newIndex].href)
+    }
+  }
+
+  const handleDragStart = () => {
+    setIsDragging(true)
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+  }
+
   // Use enhanced mobile navigation for mobile devices
   if (isMobile) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-[9999] w-full bg-black/20 backdrop-blur-sm">
         <div className="flex items-center justify-center p-2 sm:p-4">
-          <div className="flex items-center gap-1 sm:gap-2 glass-card py-2 px-2 sm:px-4 rounded-full shadow-xl border border-white/20 w-full max-w-md backdrop-blur-md">
+          <motion.div 
+            ref={containerRef}
+            className="flex items-center gap-1 sm:gap-2 glass-card py-2 px-2 sm:px-4 rounded-full shadow-xl border border-white/20 w-full max-w-md backdrop-blur-md"
+            drag="x"
+            dragConstraints={{ left: -100, right: 100 }}
+            dragElastic={0.2}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onPanEnd={handleSwipe}
+            dragMomentum={false}
+            whileDrag={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
             {menuItems.map((item) => {
               const isActive = activeTab === item.href
 
@@ -93,9 +136,10 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                     "relative cursor-pointer text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full transition-all duration-300 flex-1",
                     "text-white/80 hover:text-white",
                     isActive && "text-white",
+                    isDragging && "pointer-events-none"
                   )}
-                  onClick={() => setActiveTab(item.href)}
-                  whileTap={{ scale: 0.95 }}
+                  onClick={() => !isDragging && setActiveTab(item.href)}
+                  whileTap={{ scale: isDragging ? 1 : 0.95 }}
                 >
                   <span className="flex flex-col items-center gap-1">
                     <span className="text-sm sm:text-base">
@@ -152,8 +196,9 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                     </motion.div>
                   )}
                 </motion.div>
-              )})}
-          </div>
+              )
+            })}
+          </motion.div>
         </div>
       </div>
     )

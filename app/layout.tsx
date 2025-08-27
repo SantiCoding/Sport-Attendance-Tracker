@@ -3,13 +3,14 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ToastProvider } from "../toast"
+import { PWAProvider } from "../pwa-provider"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Attendance Tracker",
-  description: "Professional sports attendance management system for coaches",
+  title: "Tennis Attendance Tracker",
+  description: "Professional tennis attendance management system for coaches",
   generator: "v0.app",
   manifest: "/manifest.json",
   themeColor: "#0a0a0a",
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Attendance Tracker",
+    title: "Tennis Tracker",
   },
   formatDetection: {
     telephone: false,
@@ -40,12 +41,17 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Attendance Tracker" />
+        <meta name="apple-mobile-web-app-title" content="Tennis Tracker" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#0a0a0a" />
+        <meta name="application-name" content="Tennis Tracker" />
+        <meta name="msapplication-TileColor" content="#0a0a0a" />
+        <meta name="msapplication-tap-highlight" content="no" />
       </head>
       <body className={inter.className}>
-        <ToastProvider>{children}</ToastProvider>
+        <PWAProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </PWAProvider>
         <SpeedInsights />
       </body>
     </html>

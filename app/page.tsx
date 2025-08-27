@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -1006,44 +1006,46 @@ export default function TennisTracker() {
     toast(`✅ Attendance recorded: ${presentCount} present, ${absentCount} absent`, "success")
   }
 
-  // Filter and sort students for search
-  const filteredAndSortedStudents = currentProfile
-    ? currentProfile.students
-        .filter((student) => {
-          const matchesSearch =
-            searchTerm === "" ||
-            student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            student.notes.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter and sort students for search - Memoized for performance
+  const filteredAndSortedStudents = useMemo(() => {
+    if (!currentProfile) return []
+    
+    return currentProfile.students
+      .filter((student) => {
+        const matchesSearch =
+          searchTerm === "" ||
+          student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          student.notes.toLowerCase().includes(searchTerm.toLowerCase())
 
-          const matchesFilter =
-            filterBy === "all_students" ||
-            (filterBy === "active" && student.remainingSessions > 0) ||
-            (filterBy === "inactive" && student.remainingSessions === 0) ||
-            (filterBy === "has_makeups" && student.makeupSessions > 0)
+        const matchesFilter =
+          filterBy === "all_students" ||
+          (filterBy === "active" && student.remainingSessions > 0) ||
+          (filterBy === "inactive" && student.remainingSessions === 0) ||
+          (filterBy === "has_makeups" && student.makeupSessions > 0)
 
-          return matchesSearch && matchesFilter
-        })
-        .sort((a, b) => {
-          switch (sortBy) {
-            case "name":
-              return a.name.localeCompare(b.name)
-            case "remaining_sessions":
-              return b.remainingSessions - a.remainingSessions
-            case "makeup_sessions":
-              return b.makeupSessions - a.makeupSessions
-            case "prepaid_sessions":
-              return b.prepaidSessions - a.prepaidSessions
-            default:
-              return 0
-          }
-        })
-    : []
+        return matchesSearch && matchesFilter
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "name":
+            return a.name.localeCompare(b.name)
+          case "remaining_sessions":
+            return b.remainingSessions - a.remainingSessions
+          case "makeup_sessions":
+            return b.makeupSessions - a.makeupSessions
+          case "prepaid_sessions":
+            return b.prepaidSessions - a.prepaidSessions
+          default:
+            return 0
+        }
+      })
+  }, [currentProfile, searchTerm, filterBy, sortBy])
 
-  // Get student groups
-  const getStudentGroups = (studentId: string) => {
+  // Get student groups - Memoized for performance
+  const getStudentGroups = useCallback((studentId: string) => {
     if (!currentProfile) return []
     return (currentProfile.groups ?? []).filter((group) => group.studentIds.includes(studentId))
-  }
+  }, [currentProfile])
 
   // Delete student
   const deleteStudent = (studentId: string) => {
@@ -1268,7 +1270,7 @@ export default function TennisTracker() {
     toast("🗑️ Archived term deleted", "success")
   }
 
-  const getStudentAttendanceHistory = (studentId: string) => {
+  const getStudentAttendanceHistory = useCallback((studentId: string) => {
     if (!currentProfile) return []
 
     return (currentProfile.attendanceRecords ?? [])
@@ -1283,9 +1285,9 @@ export default function TennisTracker() {
         return dateB - dateA
       })
       .slice(0, 10) // Show last 10 sessions
-  }
+  }, [currentProfile])
 
-  const getSessionHistory = () => {
+  const getSessionHistory = useMemo(() => {
     if (!currentProfile) return []
 
     // Group attendance records by session (date + group + time)
@@ -1318,8 +1320,16 @@ export default function TennisTracker() {
         if (isNaN(dateB)) return -1
         return dateB - dateA
       })
-      .slice(0, 20)
-  }
+      .slice(0, 20) as Array<{
+        id: string
+        date: string
+        time: string
+        groupId: string
+        groupName: string
+        records: any[]
+        isCancelled: boolean
+      }>
+  }, [currentProfile])
 
   const finalizeTerm = () => {
     if (!currentProfile) return
@@ -3006,7 +3016,7 @@ export default function TennisTracker() {
                       <p className="text-secondary-white text-center py-8">No session records yet.</p>
                     ) : (
                       <div className="space-y-3">
-                        {getSessionHistory().map((session, index) => {
+                        {getSessionHistory.map((session, index) => {
                           const presentCount = (session.records ?? []).filter((r: any) => r.status === "present").length
                           const absentCount = (session.records ?? []).filter((r: any) => r.status === "absent").length
                           const cancelledCount = (session.records ?? []).filter((r: any) => r.status === "canceled").length

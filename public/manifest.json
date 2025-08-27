@@ -1,7 +1,7 @@
 {
-  "name": "Attendance Tracker",
-  "short_name": "Attendance Tracker",
-  "description": "Professional sports attendance management system for coaches",
+  "name": "Tennis Attendance Tracker",
+  "short_name": "Tennis Tracker",
+  "description": "Professional tennis attendance management system for coaches",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
@@ -52,6 +52,18 @@
       ]
     },
     {
+      "name": "Record Attendance",
+      "short_name": "Attendance",
+      "description": "Record today's attendance",
+      "url": "/?action=attendance",
+      "icons": [
+        {
+          "src": "/placeholder-logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
       "name": "View Reports",
       "short_name": "Reports",
       "description": "View attendance reports",
@@ -63,5 +75,10 @@
         }
       ]
     }
-  ]
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
