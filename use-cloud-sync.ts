@@ -191,7 +191,7 @@ export function useCloudSync(user: User | null) {
     })
   }
 
-  // Load data from cloud
+  // Load data from cloud with optimized parallel queries
   const loadFromCloud = async (): Promise<CoachProfile[]> => {
     if (!user || !isSupabaseConfigured) return []
 
@@ -208,63 +208,103 @@ export function useCloudSync(user: User | null) {
         return []
       }
 
+      if (!profiles || profiles.length === 0) {
+        return []
+      }
+
       const cloudProfiles: CoachProfile[] = []
 
-      for (const profile of profiles || []) {
-        // Load students
-        const { data: students, error: studentsError } = await supabase
-          .from("students")
+      // Load all data for all profiles in parallel for better performance
+      const profileIds = profiles.map(p => p.id)
+      
+      // Parallel queries for better performance
+      const [
+        { data: allStudents, error: studentsError },
+        { data: allGroups, error: groupsError },
+        { data: allAttendanceRecords, error: attendanceError },
+        { data: allArchivedTerms, error: archivedError },
+        { data: allCompletedMakeups, error: makeupError }
+      ] = await Promise.all([
+        supabase.from("students").select("*").in("profile_id", profileIds),
+        supabase.from("groups").select("*").in("profile_id", profileIds),
+        supabase.from("attendance_records").select("*").in("profile_id", profileIds),
+        supabase.from("archived_terms").select("*").in("profile_id", profileIds),
+        supabase.from("completed_makeup_sessions").select("*").in("profile_id", profileIds)
+      ])
+
+      if (studentsError) throw studentsError
+      if (groupsError) throw groupsError
+      if (attendanceError) throw attendanceError
+      if (archivedError) throw archivedError
+      if (makeupError) throw makeupError
+
+      // Try to load makeup sessions (if table exists)
+      let allMakeupSessions: any[] = []
+      try {
+        const { data: makeupData, error: makeupSessionsError } = await supabase
+          .from("makeup_sessions")
           .select("*")
-          .eq("profile_id", profile.id)
-
-        if (studentsError) throw studentsError
-
-        // Load groups
-        const { data: groups, error: groupsError } = await supabase
-          .from("groups")
-          .select("*")
-          .eq("profile_id", profile.id)
-
-        if (groupsError) throw groupsError
-
-        // Load attendance records
-        const { data: attendanceRecords, error: attendanceError } = await supabase
-          .from("attendance_records")
-          .select("*")
-          .eq("profile_id", profile.id)
-
-        if (attendanceError) throw attendanceError
-
-        // Load archived terms
-        const { data: archivedTerms, error: archivedError } = await supabase
-          .from("archived_terms")
-          .select("*")
-          .eq("profile_id", profile.id)
-
-        if (archivedError) throw archivedError
-
-        // Load completed makeup sessions
-        const { data: completedMakeups, error: makeupError } = await supabase
-          .from("completed_makeup_sessions")
-          .select("*")
-          .eq("profile_id", profile.id)
-
-        if (makeupError) throw makeupError
-
-        // Load makeup sessions (if table exists)
-        let makeupSessions: any[] = []
-        try {
-          const { data: makeupData, error: makeupSessionsError } = await supabase
-            .from("makeup_sessions")
-            .select("*")
-            .eq("profile_id", profile.id)
-          
-          if (!makeupSessionsError && makeupData) {
-            makeupSessions = makeupData
-          }
-        } catch (e) {
-          console.log("Makeup sessions table not found, using empty array")
+          .in("profile_id", profileIds)
+        
+        if (!makeupSessionsError && makeupData) {
+          allMakeupSessions = makeupData
         }
+      } catch (e) {
+        console.log("Makeup sessions table not found, using empty array")
+      }
+
+      // Group data by profile_id for efficient lookup
+      const studentsByProfile = new Map<string, any[]>()
+      const groupsByProfile = new Map<string, any[]>()
+      const attendanceByProfile = new Map<string, any[]>()
+      const archivedByProfile = new Map<string, any[]>()
+      const completedMakeupsByProfile = new Map<string, any[]>()
+      const makeupSessionsByProfile = new Map<string, any[]>()
+
+      ;(allStudents || []).forEach(s => {
+        const profileId = s.profile_id
+        if (!studentsByProfile.has(profileId)) studentsByProfile.set(profileId, [])
+        studentsByProfile.get(profileId)!.push(s)
+      })
+
+      ;(allGroups || []).forEach(g => {
+        const profileId = g.profile_id
+        if (!groupsByProfile.has(profileId)) groupsByProfile.set(profileId, [])
+        groupsByProfile.get(profileId)!.push(g)
+      })
+
+      ;(allAttendanceRecords || []).forEach(a => {
+        const profileId = a.profile_id
+        if (!attendanceByProfile.has(profileId)) attendanceByProfile.set(profileId, [])
+        attendanceByProfile.get(profileId)!.push(a)
+      })
+
+      ;(allArchivedTerms || []).forEach(t => {
+        const profileId = t.profile_id
+        if (!archivedByProfile.has(profileId)) archivedByProfile.set(profileId, [])
+        archivedByProfile.get(profileId)!.push(t)
+      })
+
+      ;(allCompletedMakeups || []).forEach(m => {
+        const profileId = m.profile_id
+        if (!completedMakeupsByProfile.has(profileId)) completedMakeupsByProfile.set(profileId, [])
+        completedMakeupsByProfile.get(profileId)!.push(m)
+      })
+
+      ;(allMakeupSessions || []).forEach(m => {
+        const profileId = m.profile_id
+        if (!makeupSessionsByProfile.has(profileId)) makeupSessionsByProfile.set(profileId, [])
+        makeupSessionsByProfile.get(profileId)!.push(m)
+      })
+
+      // Build profiles with grouped data
+      for (const profile of profiles) {
+        const students = studentsByProfile.get(profile.id) || []
+        const groups = groupsByProfile.get(profile.id) || []
+        const attendanceRecords = attendanceByProfile.get(profile.id) || []
+        const archivedTerms = archivedByProfile.get(profile.id) || []
+        const completedMakeups = completedMakeupsByProfile.get(profile.id) || []
+        const makeupSessions = makeupSessionsByProfile.get(profile.id) || []
 
         // Transform data to match local format
         const cloudProfile: CoachProfile = {
@@ -387,127 +427,118 @@ export function useCloudSync(user: User | null) {
       } else {
         console.log("✅ Database connection test successful")
       }
-      for (const profile of migratedProfiles) {
-        console.log("🔄 Saving profile:", { 
-          profileId: profile.id, 
-          profileName: profile.name,
-          userId: user.id,
-          isProfileIdValid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(profile.id)
-        })
-        
-        // Upsert coach profile
-        const { error: profileError } = await supabase.from("coach_profiles").upsert({
-          id: profile.id,
-          user_id: user.id,
-          name: profile.name,
-          updated_at: new Date().toISOString(),
-        })
+      // Batch save all profiles for better performance
+      const profileUpserts = migratedProfiles.map(profile => ({
+        id: profile.id,
+        user_id: user.id,
+        name: profile.name,
+        updated_at: new Date().toISOString(),
+      }))
 
-        if (profileError) {
-          console.error("❌ Profile save error details:", {
-            message: profileError.message,
-            details: profileError.details,
-            hint: profileError.hint,
-            code: profileError.code
-          })
-          console.error("❌ Profile data being sent:", {
-            id: profile.id,
-            user_id: user.id,
-            name: profile.name,
-            updated_at: new Date().toISOString(),
-          })
-          console.error("❌ Full error object:", JSON.stringify(profileError, null, 2))
-          
-          // Simple error logging that should definitely show up
-          console.error("❌ ERROR MESSAGE:", profileError.message || "No message")
-          console.error("❌ ERROR CODE:", profileError.code || "No code")
-          console.error("❌ ERROR DETAILS:", profileError.details || "No details")
-          
-          throw profileError
+      // Upsert all profiles in one batch
+      const { error: profileError } = await supabase.from("coach_profiles").upsert(profileUpserts)
+      if (profileError) {
+        console.error("❌ Profile batch save error:", profileError)
+        throw profileError
+      }
+      console.log("✅ All profiles saved successfully")
+
+      // Clear all existing data for all profiles in parallel
+      const profileIds = migratedProfiles.map(p => p.id)
+      await Promise.all([
+        supabase.from("students").delete().in("profile_id", profileIds),
+        supabase.from("groups").delete().in("profile_id", profileIds),
+        supabase.from("attendance_records").delete().in("profile_id", profileIds),
+        supabase.from("completed_makeup_sessions").delete().in("profile_id", profileIds)
+      ])
+
+      // Prepare all data for batch insertion
+      const allStudents = migratedProfiles.flatMap(profile => 
+        profile.students.map((s) => ({
+          id: s.id,
+          profile_id: profile.id,
+          name: s.name,
+          notes: s.notes,
+          prepaid_sessions: s.prepaidSessions,
+          remaining_sessions: s.remainingSessions,
+          makeup_sessions: s.makeupSessions,
+          session_history: s.sessionHistory || [],
+        }))
+      )
+
+      const allGroups = migratedProfiles.flatMap(profile => 
+        profile.groups.map((g) => ({
+          id: g.id,
+          profile_id: profile.id,
+          name: g.name,
+          type: g.type,
+          student_ids: g.studentIds,
+          day_of_week: Array.isArray(g.dayOfWeek) ? g.dayOfWeek.join(',') : g.dayOfWeek,
+          time: g.time,
+          duration: g.duration,
+        }))
+      )
+
+      const allAttendanceRecords = migratedProfiles.flatMap(profile => 
+        profile.attendanceRecords.map((a) => ({
+          id: a.id,
+          profile_id: profile.id,
+          date: a.date,
+          time: a.time,
+          group_id: a.groupId,
+          student_id: a.studentId,
+          status: a.status,
+          notes: a.notes,
+          time_adjustment_amount: a.timeAdjustmentAmount,
+          time_adjustment_type: a.timeAdjustmentType,
+          time_adjustment_reason: a.timeAdjustmentReason,
+          cancel_reason: a.cancelReason,
+        }))
+      )
+
+      const allCompletedMakeups = migratedProfiles.flatMap(profile => 
+        profile.completedMakeupSessions.map((m) => ({
+          id: m.id,
+          profile_id: profile.id,
+          student_id: m.studentId,
+          student_name: m.studentName,
+          date: m.date,
+          group_id: m.groupId,
+          group_name: m.groupName,
+          type: m.type,
+          completed_date: m.completedDate,
+        }))
+      )
+
+      // Batch insert all data in parallel
+      const insertPromises = []
+      
+      if (allStudents.length > 0) {
+        insertPromises.push(supabase.from("students").insert(allStudents))
+      }
+      
+      if (allGroups.length > 0) {
+        insertPromises.push(supabase.from("groups").insert(allGroups))
+      }
+      
+      if (allAttendanceRecords.length > 0) {
+        insertPromises.push(supabase.from("attendance_records").insert(allAttendanceRecords))
+      }
+      
+      if (allCompletedMakeups.length > 0) {
+        insertPromises.push(supabase.from("completed_makeup_sessions").insert(allCompletedMakeups))
+      }
+
+      // Execute all insertions in parallel
+      const insertResults = await Promise.all(insertPromises)
+      
+      // Check for errors
+      for (const result of insertResults) {
+        if (result.error) {
+          console.error("❌ Batch insert error:", result.error)
+          throw result.error
         }
-        console.log("✅ Profile saved successfully")
-
-        // Clear existing data for this profile
-        await supabase.from("students").delete().eq("profile_id", profile.id)
-        await supabase.from("groups").delete().eq("profile_id", profile.id)
-        await supabase.from("attendance_records").delete().eq("profile_id", profile.id)
-        await supabase.from("completed_makeup_sessions").delete().eq("profile_id", profile.id)
-
-        // Insert students
-        if (profile.students.length > 0) {
-          const { error: studentsError } = await supabase.from("students").insert(
-            profile.students.map((s) => ({
-              id: s.id,
-              profile_id: profile.id,
-              name: s.name,
-              notes: s.notes,
-              prepaid_sessions: s.prepaidSessions,
-              remaining_sessions: s.remainingSessions,
-              makeup_sessions: s.makeupSessions,
-              session_history: s.sessionHistory || [],
-            })),
-          )
-
-          if (studentsError) throw studentsError
-        }
-
-        // Insert groups
-        if (profile.groups.length > 0) {
-          const { error: groupsError } = await supabase.from("groups").insert(
-            profile.groups.map((g) => ({
-              id: g.id,
-              profile_id: profile.id,
-              name: g.name,
-              type: g.type,
-              student_ids: g.studentIds,
-              day_of_week: Array.isArray(g.dayOfWeek) ? g.dayOfWeek.join(',') : g.dayOfWeek,
-              time: g.time,
-              duration: g.duration,
-            })),
-          )
-
-          if (groupsError) throw groupsError
-        }
-
-        // Insert attendance records
-        if (profile.attendanceRecords.length > 0) {
-          const { error: attendanceError } = await supabase.from("attendance_records").insert(
-            profile.attendanceRecords.map((a) => ({
-              id: a.id,
-              profile_id: profile.id,
-              date: a.date,
-              time: a.time,
-              group_id: a.groupId,
-              student_id: a.studentId,
-              status: a.status,
-              notes: a.notes,
-              time_adjustment_amount: a.timeAdjustmentAmount,
-              time_adjustment_type: a.timeAdjustmentType,
-              time_adjustment_reason: a.timeAdjustmentReason,
-              cancel_reason: a.cancelReason,
-            })),
-          )
-
-          if (attendanceError) throw attendanceError
-        }
-
-        // Insert completed makeup sessions
-        if (profile.completedMakeupSessions.length > 0) {
-          const { error: makeupError } = await supabase.from("completed_makeup_sessions").insert(
-            profile.completedMakeupSessions.map((m) => ({
-              id: m.id,
-              profile_id: profile.id,
-              student_id: m.studentId,
-              student_name: m.studentName,
-              date: m.date,
-              group_id: m.groupId,
-              group_name: m.groupName,
-              type: m.type,
-              completed_date: m.completedDate,
-            })),
-          )
-
-          if (makeupError) throw makeupError
+      }
         }
 
         // Update archived terms

@@ -131,6 +131,8 @@ export default function TennisTracker() {
   const [profiles, setProfiles] = useState<CoachProfile[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<string>("")
   const [activeTab, setActiveTab] = useState("students")
+  const [isLoading, setIsLoading] = useState(true)
+  const [lastLoadTime, setLastLoadTime] = useState<number>(0)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedGroupId, setSelectedGroupId] = useState<string>("")
   const [selectedTime, setSelectedTime] = useState({ hour: "9", minute: "00", period: "AM" })
@@ -275,6 +277,36 @@ export default function TennisTracker() {
     })
   }
 
+  const recoverDataFromLocalStorage = () => {
+    try {
+      const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
+      const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
+      
+      if (savedProfiles) {
+        const parsedProfiles = JSON.parse(savedProfiles).map((profile: any) => ({
+          ...profile,
+          students: profile.students || [],
+          groups: profile.groups || [],
+          attendanceRecords: profile.attendanceRecords || [],
+          archivedTerms: profile.archivedTerms || [],
+          completedMakeupSessions: profile.completedMakeupSessions || [],
+          makeupSessions: profile.makeupSessions || [],
+        }))
+        
+        setProfiles(parsedProfiles)
+        if (savedCurrentProfile) {
+          setCurrentProfileId(savedCurrentProfile)
+        }
+        toast("✅ Data recovered from localStorage", "success")
+      } else {
+        toast("❌ No data found in localStorage", "error")
+      }
+    } catch (error) {
+      console.error("Error recovering data:", error)
+      toast("❌ Error recovering data", "error")
+    }
+  }
+
   const currentProfile = profiles.find((p) => p.id === currentProfileId) || {
     id: "",
     name: "",
@@ -284,6 +316,29 @@ export default function TennisTracker() {
     archivedTerms: [],
     completedMakeupSessions: [],
     makeupSessions: [],
+  }
+
+  const updateProfile = (updatedProfile: CoachProfile) => {
+    const updatedProfiles = profiles.map((p) => (p.id === updatedProfile.id ? updatedProfile : p))
+    setProfiles(updatedProfiles)
+    
+    // Save to localStorage immediately for backup
+    try {
+      localStorage.setItem("tennisTrackerProfiles", JSON.stringify(updatedProfiles))
+      localStorage.setItem("tennisTrackerCurrentProfile", updatedProfile.id)
+      console.log("✅ Data saved to localStorage backup")
+    } catch (error) {
+      console.error("❌ Error saving to localStorage:", error)
+    }
+    
+    // Save to cloud if signed in (debounced)
+    if (user && isSupabaseConfigured) {
+      setTimeout(() => {
+        saveToCloud(updatedProfiles).catch((error: any) => {
+          console.error("❌ Error saving to cloud:", error)
+        })
+      }, 1000)
+    }
   }
 
   useEffect(() => {
@@ -325,6 +380,11 @@ export default function TennisTracker() {
     // Only load if we haven't loaded data for the current user yet
     if (hasLoadedData.current) return
     
+    // Prevent multiple simultaneous loads
+    const now = Date.now()
+    if (now - lastLoadTime < 1000) return // Debounce loads within 1 second
+    
+    setIsLoading(true)
     let isMounted = true
     
     const loadData = async () => {
@@ -418,13 +478,13 @@ export default function TennisTracker() {
               setProfiles([])
               hasLoadedFromCloudThisSession.current = true
             }
-          } catch (e) {
-            console.error("❌ Error during first-time migration:", e)
-            setProfiles([])
-            hasLoadedFromCloudThisSession.current = true
-          }
+                  } catch (e: any) {
+          console.error("❌ Error during first-time migration:", e)
+          setProfiles([])
+          hasLoadedFromCloudThisSession.current = true
         }
-        } catch (error) {
+        }
+        } catch (error: any) {
           console.error("❌ Error loading from cloud:", error)
           // If cloud loading fails, fall back to localStorage
           const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
@@ -507,7 +567,7 @@ export default function TennisTracker() {
             if (isMounted) {
               setProfiles(finalProfiles as any)
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error("Error parsing saved profiles:", error)
             if (isMounted) {
               setProfiles([])
@@ -524,6 +584,8 @@ export default function TennisTracker() {
       }
       if (isMounted) {
         hasLoadedData.current = true
+        setIsLoading(false)
+        setLastLoadTime(Date.now())
       }
     }
 
@@ -532,7 +594,7 @@ export default function TennisTracker() {
     return () => {
       isMounted = false
     }
-  }, [user?.id, isSupabaseConfigured]) // Remove loadFromCloud from dependencies
+  }, [user?.id, isSupabaseConfigured, lastLoadTime]) // Add lastLoadTime to dependencies
 
   // Reset data loading flag when user changes
   useEffect(() => {
