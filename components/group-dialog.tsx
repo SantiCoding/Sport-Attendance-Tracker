@@ -25,7 +25,7 @@ interface Group {
   name: string
   type: "group" | "private"
   studentIds: string[]
-  dayOfWeek?: string
+  dayOfWeek?: string | string[]
   time?: string
   duration?: string
 }
@@ -54,7 +54,7 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
   const [formData, setFormData] = useState({
     name: "",
     type: "group" as "group" | "private",
-    dayOfWeek: "monday",
+    dayOfWeek: ["monday"] as string[],
     time: "9:00 AM",
     duration: "1 hour",
     studentIds: [] as string[],
@@ -65,7 +65,7 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
       setFormData({
         name: group.name,
         type: group.type,
-        dayOfWeek: group.dayOfWeek || "monday",
+        dayOfWeek: Array.isArray(group.dayOfWeek) ? group.dayOfWeek : [group.dayOfWeek || "monday"],
         time: group.time || "9:00 AM",
         duration: group.duration || "1 hour",
         studentIds: group.studentIds,
@@ -74,7 +74,7 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
       setFormData({
         name: "",
         type: "group",
-        dayOfWeek: "monday",
+        dayOfWeek: ["monday"],
         time: "9:00 AM",
         duration: "1 hour",
         studentIds: [],
@@ -91,6 +91,28 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
     }))
   }
 
+  const handleDayToggle = (day: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      dayOfWeek: prev.dayOfWeek.includes(day)
+        ? prev.dayOfWeek.filter((d) => d !== day)
+        : [...prev.dayOfWeek, day],
+    }))
+  }
+
+  const getDayDisplayName = (day: string) => {
+    const dayMap: { [key: string]: string } = {
+      monday: "Mon",
+      tuesday: "Tue", 
+      wednesday: "Wed",
+      thursday: "Thu",
+      friday: "Fri",
+      saturday: "Sat",
+      sunday: "Sun"
+    }
+    return dayMap[day] || day
+  }
+
   const handleSubmit = () => {
     if (!formData.name.trim()) {
       toast("❌ Group name is required", "error")
@@ -101,7 +123,7 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
       id: group?.id || `group_${Date.now()}`,
       name: formData.name.trim(),
       type: formData.type,
-      dayOfWeek: formData.dayOfWeek,
+      dayOfWeek: formData.dayOfWeek.length === 1 ? formData.dayOfWeek[0] : formData.dayOfWeek,
       time: formData.time,
       duration: formData.duration,
       studentIds: formData.studentIds,
@@ -167,38 +189,21 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-secondary-white">Day</Label>
-              <Select
-                value={formData.dayOfWeek}
-                onValueChange={(value) => setFormData({ ...formData, dayOfWeek: value })}
-              >
-                <SelectTrigger className="glass-input text-primary-white mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="glass-dropdown">
-                  <SelectItem value="monday" className="text-primary-white">
-                    Monday
-                  </SelectItem>
-                  <SelectItem value="tuesday" className="text-primary-white">
-                    Tuesday
-                  </SelectItem>
-                  <SelectItem value="wednesday" className="text-primary-white">
-                    Wednesday
-                  </SelectItem>
-                  <SelectItem value="thursday" className="text-primary-white">
-                    Thursday
-                  </SelectItem>
-                  <SelectItem value="friday" className="text-primary-white">
-                    Friday
-                  </SelectItem>
-                  <SelectItem value="saturday" className="text-primary-white">
-                    Saturday
-                  </SelectItem>
-                  <SelectItem value="sunday" className="text-primary-white">
-                    Sunday
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-secondary-white">Days ({formData.dayOfWeek.length} selected)</Label>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
+                  <div key={day} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`day-${day}`}
+                      checked={formData.dayOfWeek.includes(day)}
+                      onCheckedChange={() => handleDayToggle(day)}
+                    />
+                    <Label htmlFor={`day-${day}`} className="text-secondary-white text-sm cursor-pointer">
+                      {getDayDisplayName(day)}
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </div>
             <div>
               <Label className="text-secondary-white">Time</Label>

@@ -251,6 +251,21 @@ export function useCloudSync(user: User | null) {
 
         if (makeupError) throw makeupError
 
+        // Load makeup sessions (if table exists)
+        let makeupSessions: any[] = []
+        try {
+          const { data: makeupData, error: makeupSessionsError } = await supabase
+            .from("makeup_sessions")
+            .select("*")
+            .eq("profile_id", profile.id)
+          
+          if (!makeupSessionsError && makeupData) {
+            makeupSessions = makeupData
+          }
+        } catch (e) {
+          console.log("Makeup sessions table not found, using empty array")
+        }
+
         // Transform data to match local format
         const cloudProfile: CoachProfile = {
           id: profile.id,
@@ -260,15 +275,16 @@ export function useCloudSync(user: User | null) {
             name: s.name,
             notes: s.notes,
             prepaidSessions: s.prepaid_sessions,
-            remainingSessions: s.prepaid_sessions, // Use prepaid_sessions as remaining_sessions until migration
+            remainingSessions: s.remaining_sessions || s.prepaid_sessions, // Use remaining_sessions if available, fallback to prepaid_sessions
             makeupSessions: s.makeup_sessions,
+            sessionHistory: s.session_history || [],
           })),
           groups: (groups || []).map((g) => ({
             id: g.id,
             name: g.name,
             type: g.type,
             studentIds: g.student_ids || [],
-            dayOfWeek: g.day_of_week || undefined,
+            dayOfWeek: g.day_of_week ? (g.day_of_week.includes(',') ? g.day_of_week.split(',') : g.day_of_week) : undefined,
             time: g.time || undefined,
             duration: g.duration || undefined,
           })),
@@ -307,7 +323,22 @@ export function useCloudSync(user: User | null) {
             type: m.type,
             completedDate: m.completed_date,
           })),
-          makeupSessions: [], // Initialize empty array for makeup sessions
+          makeupSessions: (makeupSessions || []).map((m) => ({
+            id: m.id,
+            studentId: m.student_id,
+            originalDate: m.original_date,
+            originalGroupId: m.original_group_id,
+            reason: m.reason,
+            notes: m.notes,
+            createdDate: m.created_date,
+            status: m.status,
+            scheduledDate: m.scheduled_date,
+            scheduledTime: m.scheduled_time,
+            scheduledGroupId: m.scheduled_group_id,
+            completedDate: m.completed_date,
+            completedNotes: m.completed_notes,
+            originalTime: m.original_time,
+          })),
         }
 
         cloudProfiles.push(cloudProfile)
@@ -411,7 +442,9 @@ export function useCloudSync(user: User | null) {
               name: s.name,
               notes: s.notes,
               prepaid_sessions: s.prepaidSessions,
+              remaining_sessions: s.remainingSessions,
               makeup_sessions: s.makeupSessions,
+              session_history: s.sessionHistory || [],
             })),
           )
 
@@ -427,6 +460,9 @@ export function useCloudSync(user: User | null) {
               name: g.name,
               type: g.type,
               student_ids: g.studentIds,
+              day_of_week: Array.isArray(g.dayOfWeek) ? g.dayOfWeek.join(',') : g.dayOfWeek,
+              time: g.time,
+              duration: g.duration,
             })),
           )
 

@@ -59,6 +59,12 @@ interface Student {
   prepaidSessions: number
   remainingSessions: number
   makeupSessions: number
+  sessionHistory?: {
+    date: string
+    type: "attended" | "missed" | "makeup" | "cancelled"
+    groupId?: string
+    notes?: string
+  }[]
 }
 
 interface Group {
@@ -66,7 +72,7 @@ interface Group {
   name: string
   type: "group" | "private"
   studentIds: string[]
-  dayOfWeek?: string
+  dayOfWeek?: string | string[]
   time?: string
   duration?: string
 }
@@ -197,6 +203,76 @@ export default function TennisTracker() {
 
   const toggleStudentExpansion = (studentId: string) => {
     setExpandedStudentId(expandedStudentId === studentId ? "" : studentId)
+  }
+
+  const formatDayDisplay = (dayOfWeek: string | string[] | undefined) => {
+    if (!dayOfWeek) return "Not specified"
+    if (Array.isArray(dayOfWeek)) {
+      const dayMap: { [key: string]: string } = {
+        monday: "Mon",
+        tuesday: "Tue", 
+        wednesday: "Wed",
+        thursday: "Thu",
+        friday: "Fri",
+        saturday: "Sat",
+        sunday: "Sun"
+      }
+      return dayOfWeek.map(day => dayMap[day] || day).join(", ")
+    }
+    const dayMap: { [key: string]: string } = {
+      monday: "Mon",
+      tuesday: "Tue", 
+      wednesday: "Wed",
+      thursday: "Thu",
+      friday: "Fri",
+      saturday: "Sat",
+      sunday: "Sun"
+    }
+    return dayMap[dayOfWeek] || dayOfWeek
+  }
+
+  const updateStudentSessionCount = (studentId: string, type: "attended" | "missed" | "makeup" | "cancelled") => {
+    const updatedStudents = currentProfile.students.map(student => {
+      if (student.id === studentId) {
+        let newRemainingSessions = student.remainingSessions
+        let newMakeupSessions = student.makeupSessions
+        
+        switch (type) {
+          case "attended":
+            newRemainingSessions = Math.max(0, student.remainingSessions - 1)
+            break
+          case "missed":
+            newMakeupSessions = student.makeupSessions + 1
+            break
+          case "makeup":
+            newMakeupSessions = Math.max(0, student.makeupSessions - 1)
+            break
+          case "cancelled":
+            // Don't change session counts for cancelled sessions
+            break
+        }
+        
+        return {
+          ...student,
+          remainingSessions: newRemainingSessions,
+          makeupSessions: newMakeupSessions,
+          sessionHistory: [
+            ...(student.sessionHistory || []),
+            {
+              date: new Date().toISOString().split('T')[0],
+              type,
+              notes: `Session ${type}`
+            }
+          ]
+        }
+      }
+      return student
+    })
+    
+    updateProfile({
+      ...currentProfile,
+      students: updatedStudents
+    })
   }
 
   const currentProfile = profiles.find((p) => p.id === currentProfileId) || {
@@ -632,7 +708,6 @@ export default function TennisTracker() {
     if (!group) return
 
     const timeString = `${selectedTime.hour}:${selectedTime.minute} ${selectedTime.period}`
-    let updatedStudents = [...currentProfile.students]
     const newAttendanceRecords: AttendanceRecord[] = []
     const newMakeupSessions: MakeupSession[] = []
 
@@ -659,9 +734,7 @@ export default function TennisTracker() {
       newAttendanceRecords.push(attendanceRecord)
 
       if (status === "present") {
-        updatedStudents = updatedStudents.map((s) =>
-          s.id === studentId ? { ...s, remainingSessions: Math.max(0, s.remainingSessions - 1) } : s,
-        )
+        updateStudentSessionCount(studentId, "attended")
       } else if (status === "absent") {
         const makeupSession: MakeupSession = {
           id: generateUUID(),
@@ -675,15 +748,12 @@ export default function TennisTracker() {
         }
 
         newMakeupSessions.push(makeupSession)
-        updatedStudents = updatedStudents.map((s) =>
-          s.id === studentId ? { ...s, makeupSessions: s.makeupSessions + 1 } : s,
-        )
+        updateStudentSessionCount(studentId, "missed")
       }
     })
 
     const updatedProfile = {
       ...currentProfile,
-      students: updatedStudents,
       attendanceRecords: [...currentProfile.attendanceRecords, ...newAttendanceRecords],
       makeupSessions: [...(currentProfile.makeupSessions || []), ...newMakeupSessions],
     }
@@ -719,7 +789,7 @@ export default function TennisTracker() {
       const student = currentProfile.students.find((s) => s.id === studentId)
       if (!student) return
 
-      const attendanceRecord: AttendanceRecord = {
+       const attendanceRecord: AttendanceRecord = {
         id: generateUUID(),
         date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
         time: timeString,
@@ -749,16 +819,12 @@ export default function TennisTracker() {
     })
 
     // Update student make-up counts
-    const updatedStudents = currentProfile.students.map((student) => {
-      if (group.studentIds.includes(student.id)) {
-        return { ...student, makeupSessions: student.makeupSessions + 1 }
-      }
-      return student
+    group.studentIds.forEach((studentId) => {
+      updateStudentSessionCount(studentId, "missed")
     })
 
     const updatedProfile = {
       ...currentProfile,
-      students: updatedStudents,
       attendanceRecords: [...currentProfile.attendanceRecords, ...newAttendanceRecords],
       makeupSessions: [...(currentProfile.makeupSessions || []), ...newMakeupSessions],
     }
@@ -788,6 +854,8 @@ export default function TennisTracker() {
 
     // Remove make-up session and reduce student count
     const updatedMakeupSessions = (currentProfile.makeupSessions ?? []).filter((m) => m.id !== makeupId)
+    
+    // Update student makeup count
     const updatedStudents = currentProfile.students.map((s) =>
       s.id === makeupSession.studentId ? { ...s, makeupSessions: Math.max(0, s.makeupSessions - 1) } : s,
     )
@@ -1421,13 +1489,12 @@ export default function TennisTracker() {
 
     // Move to completed makeup sessions and reduce student makeup count
     const completedSession = updatedMakeupSessions.find((m) => m.id === makeupId)
-    const updatedStudents = currentProfile.students.map((s) =>
-      s.id === makeupSession.studentId ? { ...s, makeupSessions: Math.max(0, s.makeupSessions - 1) } : s,
-    )
+    
+    // Update student session count
+    updateStudentSessionCount(makeupSession.studentId, "makeup")
 
     const updatedProfile = {
       ...currentProfile,
-      students: updatedStudents,
       makeupSessions: updatedMakeupSessions.filter((m) => m.status !== "completed"),
       completedMakeupSessions: [...(currentProfile.completedMakeupSessions ?? []), completedSession],
     }
@@ -1802,7 +1869,7 @@ export default function TennisTracker() {
                           <SelectContent className="glass-dropdown">
                             {currentProfile?.groups.map((group) => (
                               <SelectItem key={group.id} value={group.id} className="text-primary-white">
-                                {group.name} - {group.dayOfWeek} {group.time}
+                                {group.name} - {formatDayDisplay(group.dayOfWeek)} {group.time}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -2058,7 +2125,7 @@ export default function TennisTracker() {
                         <SelectContent className="glass-dropdown">
                           {currentProfile?.groups.map((group) => (
                             <SelectItem key={group.id} value={group.id} className="text-primary-white">
-                              {group.name} - {group.dayOfWeek} {group.time}
+                              {group.name} - {formatDayDisplay(group.dayOfWeek)} {group.time}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -2395,7 +2462,7 @@ export default function TennisTracker() {
                                   <div className="flex-1">
                                     <h3 className="font-semibold text-primary-white text-lg">{group.name}</h3>
                                     <p className="text-sm text-secondary-white">
-                                      {group.dayOfWeek} {group.time}
+                                      {formatDayDisplay(group.dayOfWeek)} {group.time}
                                     </p>
                                     <p className="text-xs text-tertiary-white">
                                       {group.studentIds.length} student{group.studentIds.length !== 1 ? "s" : ""}
@@ -2458,6 +2525,11 @@ export default function TennisTracker() {
                                               <span className="text-primary-white">{student.name}</span>
                                               <div className="text-xs text-secondary-white">
                                                 Prepaid: {student.prepaidSessions} • Remaining: {student.remainingSessions} • Make-ups: {student.makeupSessions}
+                                                {student.sessionHistory && student.sessionHistory.length > 0 && (
+                                                  <div className="mt-1 text-xs text-tertiary-white">
+                                                    Last session: {student.sessionHistory[student.sessionHistory.length - 1].date} ({student.sessionHistory[student.sessionHistory.length - 1].type})
+                                                  </div>
+                                                )}
                                               </div>
                                             </div>
                                           ))}
@@ -2623,7 +2695,7 @@ export default function TennisTracker() {
                             </p>
                             <p className="text-secondary-white">
                               <span className="text-blue-400">Days:</span>{" "}
-                              {smartSorterPreview.group.dayOfWeek || "Not specified"}
+                              {formatDayDisplay(smartSorterPreview.group.dayOfWeek)}
                             </p>
                             <p className="text-secondary-white">
                               <span className="text-blue-400">Time:</span> {smartSorterPreview.group.time}
@@ -2746,6 +2818,11 @@ export default function TennisTracker() {
                                 <div className="flex flex-col gap-1">
                                   <p className="text-sm text-secondary-white">
                                     Prepaid: {student.prepaidSessions} • Remaining: {student.remainingSessions} • Make-ups: {student.makeupSessions}
+                                    {student.sessionHistory && student.sessionHistory.length > 0 && (
+                                      <span className="ml-2 text-xs text-tertiary-white">
+                                        • Last: {student.sessionHistory[student.sessionHistory.length - 1].date}
+                                      </span>
+                                    )}
                                   </p>
                                 </div>
                               </div>
@@ -2762,7 +2839,7 @@ export default function TennisTracker() {
                                         <div className="flex justify-between items-center">
                                           <span className="text-primary-white font-medium">{group.name}</span>
                                           <span className="text-secondary-white text-sm">
-                                            {group.dayOfWeek} {group.time}
+                                            {formatDayDisplay(group.dayOfWeek)} {group.time}
                                           </span>
                                         </div>
                                       </div>

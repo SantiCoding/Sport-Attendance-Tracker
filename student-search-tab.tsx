@@ -25,7 +25,7 @@ interface Group {
   name: string
   type: "group" | "private"
   studentIds: string[]
-  dayOfWeek?: string
+  dayOfWeek?: string | string[]
   time?: string
   duration?: string
 }
@@ -52,6 +52,32 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
   const [sortBy, setSortBy] = useState("name")
   const [filterBy, setFilterBy] = useState("all_students")
   const [expandedStudents, setExpandedStudents] = useState<Set<string>>(new Set())
+
+  const formatDayDisplay = (dayOfWeek: string | string[] | undefined) => {
+    if (!dayOfWeek) return "Not specified"
+    if (Array.isArray(dayOfWeek)) {
+      const dayMap: { [key: string]: string } = {
+        monday: "Mon",
+        tuesday: "Tue", 
+        wednesday: "Wed",
+        thursday: "Thu",
+        friday: "Fri",
+        saturday: "Sat",
+        sunday: "Sun"
+      }
+      return dayOfWeek.map(day => dayMap[day] || day).join(", ")
+    }
+    const dayMap: { [key: string]: string } = {
+      monday: "Mon",
+      tuesday: "Tue", 
+      wednesday: "Wed",
+      thursday: "Thu",
+      friday: "Fri",
+      saturday: "Sat",
+      sunday: "Sun"
+    }
+    return dayMap[dayOfWeek] || dayOfWeek
+  }
 
   const filteredAndSortedStudents = useMemo(() => {
     if (!profileData) return []
@@ -315,7 +341,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                                     {group.name}
                                     {group.dayOfWeek && group.time && (
                                       <span className="ml-1 opacity-75">
-                                        • {group.dayOfWeek} {group.time}
+                                        • {formatDayDisplay(group.dayOfWeek)} {group.time}
                                       </span>
                                     )}
                                   </Badge>
