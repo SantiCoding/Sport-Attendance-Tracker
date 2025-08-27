@@ -539,9 +539,9 @@ export function useCloudSync(user: User | null) {
           throw result.error
         }
       }
-        }
 
-        // Update archived terms
+      // Handle archived terms for all profiles
+      for (const profile of migratedProfiles) {
         await supabase.from("archived_terms").delete().eq("profile_id", profile.id)
         if (profile.archivedTerms.length > 0) {
           const { error: archivedError } = await supabase.from("archived_terms").insert(
