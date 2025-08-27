@@ -131,8 +131,6 @@ export default function TennisTracker() {
   const [profiles, setProfiles] = useState<CoachProfile[]>([])
   const [currentProfileId, setCurrentProfileId] = useState<string>("")
   const [activeTab, setActiveTab] = useState("students")
-  const [isLoading, setIsLoading] = useState(true)
-  const [lastLoadTime, setLastLoadTime] = useState<number>(0)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedGroupId, setSelectedGroupId] = useState<string>("")
   const [selectedTime, setSelectedTime] = useState({ hour: "9", minute: "00", period: "AM" })
@@ -277,35 +275,7 @@ export default function TennisTracker() {
     })
   }
 
-  const recoverDataFromLocalStorage = () => {
-    try {
-      const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
-      const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
-      
-      if (savedProfiles) {
-        const parsedProfiles = JSON.parse(savedProfiles).map((profile: any) => ({
-          ...profile,
-          students: profile.students || [],
-          groups: profile.groups || [],
-          attendanceRecords: profile.attendanceRecords || [],
-          archivedTerms: profile.archivedTerms || [],
-          completedMakeupSessions: profile.completedMakeupSessions || [],
-          makeupSessions: profile.makeupSessions || [],
-        }))
-        
-        setProfiles(parsedProfiles)
-        if (savedCurrentProfile) {
-          setCurrentProfileId(savedCurrentProfile)
-        }
-        toast("✅ Data recovered from localStorage", "success")
-      } else {
-        toast("❌ No data found in localStorage", "error")
-      }
-    } catch (error) {
-      console.error("Error recovering data:", error)
-      toast("❌ Error recovering data", "error")
-    }
-  }
+
 
   const currentProfile = profiles.find((p) => p.id === currentProfileId) || {
     id: "",
@@ -380,11 +350,6 @@ export default function TennisTracker() {
     // Only load if we haven't loaded data for the current user yet
     if (hasLoadedData.current) return
     
-    // Prevent multiple simultaneous loads
-    const now = Date.now()
-    if (now - lastLoadTime < 1000) return // Debounce loads within 1 second
-    
-    setIsLoading(true)
     let isMounted = true
     
     const loadData = async () => {
@@ -584,8 +549,6 @@ export default function TennisTracker() {
       }
       if (isMounted) {
         hasLoadedData.current = true
-        setIsLoading(false)
-        setLastLoadTime(Date.now())
       }
     }
 
@@ -594,7 +557,7 @@ export default function TennisTracker() {
     return () => {
       isMounted = false
     }
-  }, [user?.id, isSupabaseConfigured, lastLoadTime]) // Add lastLoadTime to dependencies
+  }, [user?.id, isSupabaseConfigured]) // Remove loadFromCloud from dependencies
 
   // Reset data loading flag when user changes
   useEffect(() => {
@@ -747,10 +710,7 @@ export default function TennisTracker() {
     toast("🗑️ Profile deleted successfully", "success")
   }
 
-  const updateProfile = (updatedProfile: CoachProfile) => {
-    const updatedProfiles = profiles.map((p) => (p.id === updatedProfile.id ? updatedProfile : p))
-    setProfiles(updatedProfiles)
-  }
+
 
   const toggleAttendanceSelection = (studentId: string, status: "present" | "absent") => {
     setAttendanceSelections((prev) => {
