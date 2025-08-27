@@ -335,14 +335,17 @@ export default function TennisTracker() {
               } else {
                 console.log("📄 No guest data to migrate. Starting fresh for this user.")
                 setProfiles([])
+                hasLoadedFromCloudThisSession.current = true
               }
             } else {
               console.log("📄 Cloud empty and no eligible guest data to migrate (or already migrated). Starting fresh.")
               setProfiles([])
+              hasLoadedFromCloudThisSession.current = true
             }
           } catch (e) {
             console.error("❌ Error during first-time migration:", e)
             setProfiles([])
+            hasLoadedFromCloudThisSession.current = true
           }
         }
         } catch (error) {
@@ -486,6 +489,12 @@ export default function TennisTracker() {
     // Skip saving if we haven't finished initial data loading yet
     if (!hasLoadedData.current) {
       console.log("⏭️ Skipping save - initial data loading not complete")
+      return
+    }
+    
+    // Prevent saving empty profiles unless we're in guest mode or explicitly starting fresh
+    if (profiles.length === 0 && user && isSupabaseConfigured) {
+      console.log("⏭️ Skipping save - no profiles to save for signed-in user")
       return
     }
     
