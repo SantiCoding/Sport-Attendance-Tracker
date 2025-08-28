@@ -194,7 +194,7 @@ export async function loadFromCloud(userId: string): Promise<LocalStore> {
 }
 
 // Merge local and server entities, resolving conflicts
-function mergeStores(localStore: LocalStore, cloudStore: LocalStore): LocalStore {
+export function mergeStores(localStore: LocalStore, cloudStore: LocalStore): LocalStore {
   const mergedStore: LocalStore = {
     ...localStore,
     entities: {
@@ -209,7 +209,7 @@ function mergeStores(localStore: LocalStore, cloudStore: LocalStore): LocalStore
   return mergedStore
 }
 
-function mergeEntities(local: LocalEntity[], server: LocalEntity[]): LocalEntity[] {
+export function mergeEntities(local: LocalEntity[], server: LocalEntity[]): LocalEntity[] {
   const merged = new Map<string, LocalEntity>()
   
   // Add all local entities first

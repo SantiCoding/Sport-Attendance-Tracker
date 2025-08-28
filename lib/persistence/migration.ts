@@ -157,7 +157,7 @@ function createEmptyStore(): LocalStore {
   }
 }
 
-function computeMergePlan(guestStore: LocalStore, serverStore: LocalStore): MergePlan {
+export function computeMergePlan(guestStore: LocalStore, serverStore: LocalStore): MergePlan {
   const plan: MergePlan = {
     localOnly: [],
     serverOnly: [],
