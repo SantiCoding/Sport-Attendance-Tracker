@@ -47,7 +47,6 @@ import { useToast } from "@/toast"
 import { useAuth } from "@/use-auth"
 import { useCloudSync } from "@/use-cloud-sync"
 import { loadLocalStore, saveLocal, deleteLocal, generateClientId } from "@/lib/persistence/localStore"
-import { scheduleSync, loadFromCloud } from "@/lib/persistence/sync"
 import { migrateGuestToGoogle } from "@/lib/persistence/migration"
 import { SyncStatus } from "@/components/SyncStatus"
 import { MenuBar } from "@/components/menu-bar"
@@ -308,7 +307,7 @@ export default function TennisTracker() {
     // Save to cloud if signed in (but don't wait for it - localStorage is primary)
     if (user && isSupabaseConfigured) {
       // Save to cloud in background, but don't block the UI
-      saveToCloud(updatedProfiles).catch((error: any) => {
+      saveToCloud(updatedProfiles as any).catch((error: any) => {
         console.error("❌ Cloud sync failed, but data is safe in localStorage:", error)
       })
     }
