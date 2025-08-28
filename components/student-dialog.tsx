@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -106,6 +106,7 @@ export function StudentDialog({ profileData, onUpdateProfile, student, children 
       <DialogContent className="glass-dropdown w-[95vw] max-w-md">
         <DialogHeader>
           <DialogTitle className="text-primary-white">{student ? "Edit Student" : "Add New Student"}</DialogTitle>
+          <DialogDescription className="text-secondary-white">Provide student details and save.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>

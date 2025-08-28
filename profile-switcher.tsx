@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -133,6 +133,7 @@ export function ProfileSwitcher({ profiles, currentProfile, setProfiles, setCurr
         <DialogContent className="w-[95vw] max-w-sm">
           <DialogHeader>
             <DialogTitle>Create New Coach Profile</DialogTitle>
+            <DialogDescription>Enter a coach name and click Create Profile.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="form-field">
@@ -165,6 +166,7 @@ export function ProfileSwitcher({ profiles, currentProfile, setProfiles, setCurr
         <DialogContent className="w-[95vw] max-w-sm">
           <DialogHeader>
             <DialogTitle>Edit Coach Profile</DialogTitle>
+            <DialogDescription>Rename the profile or delete it below.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="form-field">

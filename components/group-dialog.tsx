@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -152,6 +152,7 @@ export function GroupDialog({ profileData, onUpdateProfile, group, children }: G
       <DialogContent className="glass-dropdown w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-primary-white">{group ? "Edit Group" : "Create New Group"}</DialogTitle>
+          <DialogDescription className="text-secondary-white">Set group details and save.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>

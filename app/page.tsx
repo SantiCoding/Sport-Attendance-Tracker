@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar-rac"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -3373,6 +3373,7 @@ export default function TennisTracker() {
         <DialogContent className="glass-dropdown w-[95vw] max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-primary-white">Create New Coach Profile</DialogTitle>
+            <DialogDescription className="text-secondary-white">Fill in the details and click Create Profile.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="form-field">
@@ -3412,6 +3413,7 @@ export default function TennisTracker() {
         <DialogContent className="glass-dropdown w-[95vw] max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-primary-white">Edit Coach Profile</DialogTitle>
+            <DialogDescription className="text-secondary-white">Update the profile name or delete the profile.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="form-field">
