@@ -127,7 +127,7 @@ export default function TennisTracker() {
   console.log("🎾 Tennis Tracker - Latest version loaded with glass-delete-button styling - FORCE DEPLOY");
   const { toast } = useToast()
   const { user, loading, signInWithGoogle, signOut, isSupabaseConfigured } = useAuth()
-  const { loadFromCloud, saveToCloud, syncing } = useCloudSync(user)
+  const { loadFromCloud, saveToCloud, syncing, lastSyncTime, syncStatus } = useCloudSync(user)
   const [isGuestMode, setIsGuestMode] = useState(false)
   const hasLoadedData = useRef(false)
   const hasLoadedFromCloudThisSession = useRef(false)
@@ -1741,19 +1741,35 @@ export default function TennisTracker() {
         </div>
       )}
 
-      {/* Sync Status Banner */}
-      {user && syncing && (
-        <div className="p-2 sm:p-4">
-          <div className="max-w-7xl mx-auto">
-            <Card className="glass-card bg-blue-900/20 border-blue-500/30">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-                                      <p className="text-blue-200 font-medium text-sm sm:text-base">Syncing data to cloud...</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+      {/* Sync Status (non-shifting fixed badge) */}
+      {user && (
+        <div className="fixed top-2 right-2 z-50 pointer-events-none select-none">
+          {syncStatus === 'syncing' && (
+            <div className="pointer-events-auto inline-flex items-center gap-2 rounded-md bg-blue-900/80 border border-blue-500/40 px-3 py-1 shadow-sm">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-300"></div>
+              <span className="text-blue-100 text-xs sm:text-sm">Syncing…</span>
+            </div>
+          )}
+          {syncStatus === 'synced' && (
+            <div className="pointer-events-auto inline-flex items-center gap-2 rounded-md bg-emerald-900/80 border border-emerald-500/40 px-3 py-1 shadow-sm">
+              <div className="h-2 w-2 rounded-full bg-emerald-400"></div>
+              <span className="text-emerald-100 text-xs sm:text-sm">
+                Synced{lastSyncTime ? ` • ${Math.max(0, Math.floor((Date.now()-lastSyncTime.getTime())/1000))}s ago` : ''}
+              </span>
+            </div>
+          )}
+          {syncStatus === 'delayed' && (
+            <div className="pointer-events-auto inline-flex items-center gap-2 rounded-md bg-yellow-900/80 border border-yellow-500/40 px-3 py-1 shadow-sm">
+              <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></div>
+              <span className="text-yellow-100 text-xs sm:text-sm">Sync delayed. Retrying…</span>
+            </div>
+          )}
+          {syncStatus === 'error' && (
+            <div className="pointer-events-auto inline-flex items-center gap-2 rounded-md bg-red-900/80 border border-red-500/40 px-3 py-1 shadow-sm">
+              <div className="h-2 w-2 rounded-full bg-red-400"></div>
+              <span className="text-red-100 text-xs sm:text-sm">Error syncing. Will retry.</span>
+            </div>
+          )}
         </div>
       )}
 

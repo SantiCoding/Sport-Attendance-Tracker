@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { supabase, isSupabaseConfigured } from "./supabase"
 
@@ -88,6 +88,15 @@ interface CoachProfile {
 export function useCloudSync(user: User | null) {
   const [syncing, setSyncing] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
+  const [syncStatus, setSyncStatus] = useState<"idle"|"syncing"|"synced"|"error"|"delayed">("idle")
+  const syncTimeoutRef = useRef<number | null>(null)
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current) window.clearTimeout(syncTimeoutRef.current)
+    }
+  }, [])
 
   // Generate a proper UUID v4
   const generateUUID = () => {
@@ -196,6 +205,12 @@ export function useCloudSync(user: User | null) {
     if (!user || !isSupabaseConfigured) return []
 
     setSyncing(true)
+    setSyncStatus("syncing")
+    if (syncTimeoutRef.current) window.clearTimeout(syncTimeoutRef.current)
+    syncTimeoutRef.current = window.setTimeout(() => {
+      // Hard timeout: mark as delayed but keep running in background
+      setSyncStatus("delayed")
+    }, 10000)
     try {
       // Load coach profiles
       const { data: profiles, error: profilesError } = await supabase
@@ -398,12 +413,15 @@ export function useCloudSync(user: User | null) {
       }
 
       setLastSyncTime(new Date())
+      setSyncStatus("synced")
       return cloudProfiles
     } catch (error) {
       console.error("Error loading from cloud:", error)
+      setSyncStatus("error")
       return []
     } finally {
       setSyncing(false)
+      if (syncTimeoutRef.current) window.clearTimeout(syncTimeoutRef.current)
     }
   }
 
@@ -427,6 +445,11 @@ export function useCloudSync(user: User | null) {
       profilesCount: migratedProfiles.length 
     })
     setSyncing(true)
+    setSyncStatus("syncing")
+    if (syncTimeoutRef.current) window.clearTimeout(syncTimeoutRef.current)
+    syncTimeoutRef.current = window.setTimeout(() => {
+      setSyncStatus("delayed")
+    }, 10000)
     try {
       // Test database connection first
       console.log("🔍 Testing database connection...")
@@ -578,11 +601,14 @@ export function useCloudSync(user: User | null) {
       }
 
       setLastSyncTime(new Date())
+      setSyncStatus("synced")
     } catch (error) {
       console.error("Error saving to cloud:", error)
+      setSyncStatus("error")
       throw error
     } finally {
       setSyncing(false)
+      if (syncTimeoutRef.current) window.clearTimeout(syncTimeoutRef.current)
     }
   }
 
@@ -591,5 +617,6 @@ export function useCloudSync(user: User | null) {
     saveToCloud,
     syncing,
     lastSyncTime,
+    syncStatus,
   }
 }
