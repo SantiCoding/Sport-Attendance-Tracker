@@ -22,15 +22,39 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Register service worker
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+      const onLoad = () => {
+        navigator.serviceWorker
+          .register('/sw.js')
           .then((registration) => {
             console.log('SW registered: ', registration)
+            // Proactively check for updates on load
+            try { registration.update() } catch {}
+
+            // If a new SW is found, it will install and wait
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing
+              if (!newWorker) return
+              newWorker.addEventListener('statechange', () => {
+                // When the new worker activates and takes control, we'll reload below
+                console.log('SW state:', newWorker.state)
+              })
+            })
           })
           .catch((registrationError) => {
             console.log('SW registration failed: ', registrationError)
           })
-      })
+
+        // When the active controller changes (new SW claims), refresh to get fresh assets
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          // Avoid infinite loops: only reload once per change
+          if ((window as any)._reloadedBySW) return
+          ;(window as any)._reloadedBySW = true
+          window.location.reload()
+        })
+      }
+
+      window.addEventListener('load', onLoad)
+      return () => window.removeEventListener('load', onLoad)
     }
 
     // Check if app is already installed

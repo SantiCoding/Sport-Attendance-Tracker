@@ -1,45 +1,62 @@
-const CACHE_NAME = 'tennis-tracker-v1';
-const urlsToCache = [
-  '/',
+const CACHE_NAME = 'tennis-tracker-v3';
+const STATIC_ASSETS = [
   '/manifest.json',
   '/placeholder-logo.png',
   '/placeholder-logo.svg'
 ];
 
-// Install event - cache resources
+// Ensure new SW takes control ASAP
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
 });
 
-// Fetch event - serve from cache when offline
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      })
-  );
-});
-
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+    (async () => {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
           }
         })
       );
-    })
+      await self.clients.claim();
+    })()
+  );
+});
+
+// Fetch strategy:
+// - Never cache Next.js build assets or HTML documents (network-first)
+// - Cache-first for small static assets we explicitly listed
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  // Bypass for Next build assets and API routes
+  const isNextAsset = url.pathname.startsWith('/_next/');
+  const isDocument = request.destination === 'document' || (request.mode === 'navigate');
+
+  if (isNextAsset || isDocument) {
+    event.respondWith(fetch(request).catch(() => caches.match(request)));
+    return;
+  }
+
+  // Cache-first for static assets we precached
+  if (STATIC_ASSETS.includes(url.pathname)) {
+    event.respondWith(
+      caches.match(request).then((cached) => cached || fetch(request))
+    );
+    return;
+  }
+
+  // Default: network-first with fallback to cache
+  event.respondWith(
+    fetch(request)
+      .then((response) => response)
+      .catch(() => caches.match(request))
   );
 });
