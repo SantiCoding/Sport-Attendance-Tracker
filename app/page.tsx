@@ -46,6 +46,10 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/toast"
 import { useAuth } from "@/use-auth"
 import { useCloudSync } from "@/use-cloud-sync"
+import { loadLocalStore, saveLocal, deleteLocal, generateClientId } from "@/lib/persistence/localStore"
+import { scheduleSync, loadFromCloud } from "@/lib/persistence/sync"
+import { migrateGuestToGoogle } from "@/lib/persistence/migration"
+import { SyncStatus } from "@/components/SyncStatus"
 import { MenuBar } from "@/components/menu-bar"
 import { StudentDialog } from "@/components/student-dialog"
 import { GroupDialog } from "@/components/group-dialog"
@@ -1792,6 +1796,9 @@ export default function TennisTracker() {
                                   <div>
                     <h1 className="text-primary-white text-xl sm:text-2xl font-bold">Attendance Tracker</h1>
                     <p className="text-secondary-white text-sm sm:text-base">Created by Santiago González</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <SyncStatus />
+                    </div>
                   <div className="flex items-center gap-2 mt-2">
                     <Select value={currentProfileId} onValueChange={setCurrentProfileId}>
                       <SelectTrigger className="glass-input text-primary-white w-40 sm:w-48 text-sm">
