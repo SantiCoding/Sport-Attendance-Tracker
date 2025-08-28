@@ -238,19 +238,32 @@ export function useCloudSync(user: User | null) {
       if (archivedError) throw archivedError
       if (makeupError) throw makeupError
 
-      // Try to load makeup sessions (if table exists)
+      // Try to load makeup sessions (if table exists). Cache absence to avoid repeated 404s.
       let allMakeupSessions: any[] = []
-      try {
-        const { data: makeupData, error: makeupSessionsError } = await supabase
-          .from("makeup_sessions")
-          .select("*")
-          .in("profile_id", profileIds)
-        
-        if (!makeupSessionsError && makeupData) {
-          allMakeupSessions = makeupData
+      const MAKEUP_FLAG = 'app:has_makeup_sessions'
+      const shouldQueryMakeup = typeof window === 'undefined' 
+        ? true 
+        : (localStorage.getItem(MAKEUP_FLAG) !== 'false')
+      if (shouldQueryMakeup) {
+        try {
+          const { data: makeupData, error: makeupSessionsError, status } = await supabase
+            .from("makeup_sessions")
+            .select("*")
+            .in("profile_id", profileIds)
+          
+          if (!makeupSessionsError && makeupData) {
+            allMakeupSessions = makeupData
+            try { localStorage.setItem(MAKEUP_FLAG, 'true') } catch {}
+          } else if ((makeupSessionsError as any)?.status === 404 || status === 404) {
+            // Table missing – remember to skip next time
+            try { localStorage.setItem(MAKEUP_FLAG, 'false') } catch {}
+            console.log("Makeup sessions table not found (404). Skipping future queries.")
+          }
+        } catch (e: any) {
+          // If network or 404 at fetch level, cache 'false' to avoid future noisy requests
+          try { localStorage.setItem(MAKEUP_FLAG, 'false') } catch {}
+          console.log("Makeup sessions table not available, using empty array")
         }
-      } catch (e) {
-        console.log("Makeup sessions table not found, using empty array")
       }
 
       // Group data by profile_id for efficient lookup
