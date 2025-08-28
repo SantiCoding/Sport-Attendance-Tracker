@@ -1,129 +1,129 @@
-import { supabase } from '@/supabase'
-import { loadLocalStore, saveLocalStore, clearOutboxItems, LocalStore, OutboxItem } from './localStore'
+import { supabase } from '../../supabase'
+import { 
+  LocalStore, 
+  LocalEntity, 
+  loadLocalStore, 
+  saveLocalStore,
+  addSyncLog,
+  getLeaderTabId,
+  setLeaderTabId,
+  clearLeaderTabId,
+  generateClientId
+} from './localStore'
+import { flushOutbox, getOutboxStats } from './outbox'
 
-let syncing = false
-let retryTimeout: NodeJS.Timeout | null = null
-let retryCount = 0
-const MAX_RETRIES = 5
-const BASE_RETRY_DELAY = 1000 // 1 second
+let syncWorker: NodeJS.Timeout | null = null
+let isLeader = false
+let tabId = generateClientId()
 
-export async function flushOutbox(userId?: string): Promise<void> {
-  if (syncing) return
+// Initialize leader election
+export function initializeSync(userId: string): void {
+  // Generate unique tab ID
+  tabId = generateClientId()
   
-  syncing = true
-  const store = loadLocalStore(userId)
-  
-  if (store.outbox.length === 0) {
-    syncing = false
-    return
+  // Try to become leader
+  const currentLeader = getLeaderTabId()
+  if (!currentLeader) {
+    setLeaderTabId(tabId)
+    isLeader = true
+    addSyncLog({
+      type: 'info',
+      message: 'Became sync leader',
+      details: { tabId }
+    }, userId)
+  } else if (currentLeader === tabId) {
+    isLeader = true
   }
   
-  // Process in batches of 50
-  const batch = store.outbox.slice(0, 50)
+  // Start background sync worker
+  startSyncWorker(userId)
+  
+  // Listen for storage events (other tabs)
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'app:leader:v2') {
+      const newLeader = event.newValue
+      if (newLeader === tabId) {
+        isLeader = true
+        addSyncLog({
+          type: 'info',
+          message: 'Became sync leader via storage event',
+          details: { tabId }
+        }, userId)
+      } else {
+        isLeader = false
+      }
+    }
+  })
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    if (isLeader) {
+      clearLeaderTabId()
+    }
+    stopSyncWorker()
+  })
+}
+
+export function stopSyncWorker(): void {
+  if (syncWorker) {
+    clearInterval(syncWorker)
+    syncWorker = null
+  }
+  isLeader = false
+}
+
+function startSyncWorker(userId: string): void {
+  // Flush immediately
+  flushOutboxIfLeader(userId)
+  
+  // Then set up periodic flushing
+  syncWorker = setInterval(() => {
+    flushOutboxIfLeader(userId)
+  }, 5000) // Every 5 seconds
+}
+
+async function flushOutboxIfLeader(userId: string): Promise<void> {
+  if (!isLeader) return
   
   try {
-    // Group by table for batch processing
-    const tableGroups = new Map<string, OutboxItem[]>()
-    for (const item of batch) {
-      if (!tableGroups.has(item.table)) {
-        tableGroups.set(item.table, [])
+    const stats = getOutboxStats(userId)
+    if (stats.pending === 0) return
+    
+    addSyncLog({
+      type: 'info',
+      message: 'Starting outbox flush',
+      details: { pending: stats.pending, inflight: stats.inflight }
+    }, userId)
+    
+    const result = await flushOutbox(userId)
+    
+    addSyncLog({
+      type: 'info',
+      message: 'Outbox flush completed',
+      details: { 
+        success: result.success.length, 
+        failed: result.failed.length 
       }
-      tableGroups.get(item.table)!.push(item)
-    }
-    
-    // Process each table batch
-    for (const [table, items] of tableGroups) {
-      const payloads = items.map(item => item.payload)
-      
-      if (items.some(item => item.op === 'delete')) {
-        // Handle deletes separately (tombstones)
-        const deletes = items.filter(item => item.op === 'delete').map(item => item.payload)
-        const upserts = items.filter(item => item.op === 'upsert').map(item => item.payload)
-        
-        if (deletes.length > 0) {
-          const { error: deleteError } = await supabase
-            .from(table)
-            .upsert(deletes, { onConflict: 'id' })
-          if (deleteError) throw deleteError
-        }
-        
-        if (upserts.length > 0) {
-          const { error: upsertError } = await supabase
-            .from(table)
-            .upsert(upserts, { onConflict: 'id' })
-          if (upsertError) throw upsertError
-        }
-      } else {
-        // All upserts
-        const { error } = await supabase
-          .from(table)
-          .upsert(payloads, { onConflict: 'id' })
-        if (error) throw error
-      }
-    }
-    
-    // Success - remove processed items from outbox
-    clearOutboxItems(batch, userId)
-    
-    // Update last sync time
-    store.lastSyncAt = new Date().toISOString()
-    saveLocalStore(store, userId)
-    
-    // Reset retry count on success
-    retryCount = 0
-    
-    console.log(`✅ Synced ${batch.length} items to cloud`)
+    }, userId)
     
   } catch (error) {
-    console.error('❌ Sync failed:', error)
-    
-    // Schedule retry with exponential backoff
-    if (retryCount < MAX_RETRIES) {
-      const delay = BASE_RETRY_DELAY * Math.pow(2, retryCount)
-      retryCount++
-      
-      console.log(`🔄 Scheduling retry ${retryCount}/${MAX_RETRIES} in ${delay}ms`)
-      
-      retryTimeout = setTimeout(() => {
-        flushOutbox(userId)
-      }, delay)
-    } else {
-      console.error('❌ Max retries reached, giving up on sync')
-      retryCount = 0
-    }
-  } finally {
-    syncing = false
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    addSyncLog({
+      type: 'error',
+      message: 'Outbox flush failed',
+      details: { error: errorMessage }
+    }, userId)
   }
-}
-
-export function scheduleSync(userId?: string): void {
-  // Clear any existing timeout
-  if (retryTimeout) {
-    clearTimeout(retryTimeout)
-    retryTimeout = null
-  }
-  
-  // Schedule immediate sync
-  setTimeout(() => {
-    flushOutbox(userId)
-  }, 100)
-}
-
-export function cancelPendingSync(): void {
-  if (retryTimeout) {
-    clearTimeout(retryTimeout)
-    retryTimeout = null
-  }
-  retryCount = 0
-}
-
-export function isSyncing(): boolean {
-  return syncing
 }
 
 // Load data from cloud and merge with local cache
 export async function loadFromCloud(userId: string): Promise<LocalStore> {
   const localStore = loadLocalStore(userId)
+  
+  addSyncLog({
+    type: 'info',
+    message: 'Starting cloud data load',
+  }, userId)
   
   try {
     // Load all data from cloud in parallel
@@ -131,86 +131,173 @@ export async function loadFromCloud(userId: string): Promise<LocalStore> {
       { data: students, error: studentsError },
       { data: groups, error: groupsError },
       { data: attendanceRecords, error: attendanceError },
-      { data: makeupSessions, error: makeupError },
       { data: completedMakeups, error: completedError },
       { data: archivedTerms, error: archivedError }
     ] = await Promise.all([
-      supabase.from('students').select('*').eq('user_id', userId),
-      supabase.from('groups').select('*').eq('user_id', userId),
-      supabase.from('attendance_records').select('*').eq('user_id', userId),
-      supabase.from('makeup_sessions').select('*').eq('user_id', userId),
-      supabase.from('completed_makeup_sessions').select('*').eq('user_id', userId),
-      supabase.from('archived_terms').select('*').eq('user_id', userId)
+      supabase.from('students').select('*').eq('user_id', userId).eq('deleted', false),
+      supabase.from('groups').select('*').eq('user_id', userId).eq('deleted', false),
+      supabase.from('attendance_records').select('*').eq('user_id', userId).eq('deleted', false),
+      supabase.from('completed_makeup_sessions').select('*').eq('user_id', userId).eq('deleted', false),
+      supabase.from('archived_terms').select('*').eq('user_id', userId).eq('deleted', false)
     ])
     
     if (studentsError) throw studentsError
     if (groupsError) throw groupsError
     if (attendanceError) throw attendanceError
-    if (makeupError) throw makeupError
     if (completedError) throw completedError
     if (archivedError) throw archivedError
     
-    // Merge cloud data with local cache
-    const mergedStore: LocalStore = {
-      ...localStore,
+    const cloudStore: LocalStore = {
       entities: {
-        students: mergeEntities(localStore.entities.students, students || []),
-        groups: mergeEntities(localStore.entities.groups, groups || []),
-        attendance_records: mergeEntities(localStore.entities.attendance_records, attendanceRecords || []),
-        makeup_sessions: mergeEntities(localStore.entities.makeup_sessions, makeupSessions || []),
-        completed_makeup_sessions: mergeEntities(localStore.entities.completed_makeup_sessions, completedMakeups || []),
-        archived_terms: mergeEntities(localStore.entities.archived_terms, archivedTerms || []),
+        students: students || [],
+        groups: groups || [],
+        attendance_records: attendanceRecords || [],
+        completed_makeup_sessions: completedMakeups || [],
+        archived_terms: archivedTerms || [],
       },
-      lastSyncAt: new Date().toISOString(),
+      outbox: [],
+      lastSyncAt: null,
+      version: 1,
+      syncLog: [],
     }
+    
+    // Merge cloud data with local cache using merge rules
+    const mergedStore = mergeStores(localStore, cloudStore)
+    mergedStore.lastSyncAt = new Date().toISOString()
     
     // Save merged data
     saveLocalStore(mergedStore, userId)
     
-    console.log('✅ Loaded and merged cloud data')
+    addSyncLog({
+      type: 'info',
+      message: 'Cloud data loaded and merged successfully',
+      details: { 
+        localEntities: Object.values(localStore.entities).flat().length,
+        cloudEntities: Object.values(cloudStore.entities).flat().length,
+        mergedEntities: Object.values(mergedStore.entities).flat().length
+      }
+    }, userId)
+    
     return mergedStore
     
   } catch (error) {
-    console.error('❌ Error loading from cloud:', error)
-    return localStore // Return local cache if cloud load fails
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    addSyncLog({
+      type: 'error',
+      message: 'Cloud data load failed',
+      details: { error: errorMessage }
+    }, userId)
+    
+    // Return local cache if cloud load fails
+    return localStore
   }
 }
 
 // Merge local and server entities, resolving conflicts
-function mergeEntities(local: any[], server: any[]): any[] {
-  const merged = new Map<string, any>()
-  
-  // Add all local entities first
-  for (const entity of local) {
-    merged.set(entity.id, entity)
+function mergeStores(localStore: LocalStore, cloudStore: LocalStore): LocalStore {
+  const mergedStore: LocalStore = {
+    ...localStore,
+    entities: {
+      students: mergeEntities(localStore.entities.students, cloudStore.entities.students),
+      groups: mergeEntities(localStore.entities.groups, cloudStore.entities.groups),
+      attendance_records: mergeEntities(localStore.entities.attendance_records, cloudStore.entities.attendance_records),
+      completed_makeup_sessions: mergeEntities(localStore.entities.completed_makeup_sessions, cloudStore.entities.completed_makeup_sessions),
+      archived_terms: mergeEntities(localStore.entities.archived_terms, cloudStore.entities.archived_terms),
+    },
   }
   
+  return mergedStore
+}
+
+function mergeEntities(local: LocalEntity[], server: LocalEntity[]): LocalEntity[] {
+  const merged = new Map<string, LocalEntity>()
+  
+  // Add all local entities first
+  local.forEach(entity => {
+    merged.set(entity.id, entity)
+  })
+  
   // Merge server entities
-  for (const serverEntity of server) {
+  server.forEach(serverEntity => {
     const localEntity = merged.get(serverEntity.id)
     
     if (!localEntity) {
-      // Server entity doesn't exist locally - add it
+      // Server-only entity - add to local cache
       merged.set(serverEntity.id, serverEntity)
     } else {
-      // Conflict - resolve based on updated_at
-      const localTime = new Date(localEntity.updated_at).getTime()
-      const serverTime = new Date(serverEntity.updated_at).getTime()
-      
-      if (serverTime > localTime) {
-        // Server is newer - use server data but preserve local metadata
-        const mergedEntity = {
-          ...serverEntity,
-          metadata: {
-            ...serverEntity.metadata,
-            ...localEntity.metadata,
-          }
-        }
-        merged.set(serverEntity.id, mergedEntity)
-      }
-      // If local is newer, keep local (it will be synced via outbox)
+      // Entity exists in both - resolve conflict
+      const resolvedEntity = resolveConflict(localEntity, serverEntity)
+      merged.set(serverEntity.id, resolvedEntity)
+    }
+  })
+  
+  return Array.from(merged.values())
+}
+
+function resolveConflict(local: LocalEntity, server: LocalEntity): LocalEntity {
+  const localTime = new Date(local.updated_at).getTime()
+  const serverTime = new Date(server.updated_at).getTime()
+  const timeDiff = Math.abs(localTime - serverTime)
+  
+  // If timestamps are within 1 second, prefer server
+  if (timeDiff <= 1000) {
+    return {
+      ...server,
+      metadata: {
+        ...local.metadata,
+        ...server.metadata,
+      },
     }
   }
   
-  return Array.from(merged.values()).filter(entity => !entity.deleted)
+  // If server is newer by more than 1 second, server wins
+  if (serverTime > localTime + 1000) {
+    return {
+      ...server,
+      metadata: {
+        ...local.metadata,
+        ...server.metadata,
+      },
+    }
+  }
+  
+  // If local is newer by more than 1 second, local wins
+  if (localTime > serverTime + 1000) {
+    return {
+      ...local,
+      metadata: {
+        ...local.metadata,
+        ...server.metadata,
+      },
+    }
+  }
+  
+  // Fallback to server
+  return {
+    ...server,
+    metadata: {
+      ...local.metadata,
+      ...server.metadata,
+    },
+  }
+}
+
+export function isSyncing(): boolean {
+  return isLeader && syncWorker !== null
+}
+
+export function getSyncStatus(userId: string): {
+  isLeader: boolean
+  tabId: string
+  outboxStats: ReturnType<typeof getOutboxStats>
+} {
+  return {
+    isLeader,
+    tabId,
+    outboxStats: getOutboxStats(userId),
+  }
+}
+
+export function forceSync(userId: string): Promise<void> {
+  return flushOutboxIfLeader(userId)
 }
