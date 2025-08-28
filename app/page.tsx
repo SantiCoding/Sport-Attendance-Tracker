@@ -292,22 +292,21 @@ export default function TennisTracker() {
     const updatedProfiles = profiles.map((p) => (p.id === updatedProfile.id ? updatedProfile : p))
     setProfiles(updatedProfiles)
     
-    // Save to localStorage immediately for backup
+    // ALWAYS save to localStorage FIRST - this is the primary data source
     try {
       localStorage.setItem("tennisTrackerProfiles", JSON.stringify(updatedProfiles))
       localStorage.setItem("tennisTrackerCurrentProfile", updatedProfile.id)
-      console.log("✅ Data saved to localStorage backup")
+      console.log("✅ Data saved to localStorage IMMEDIATELY")
     } catch (error) {
-      console.error("❌ Error saving to localStorage:", error)
+      console.error("❌ CRITICAL ERROR saving to localStorage:", error)
     }
     
-    // Save to cloud if signed in (debounced)
+    // Save to cloud if signed in (but don't wait for it - localStorage is primary)
     if (user && isSupabaseConfigured) {
-      setTimeout(() => {
-        saveToCloud(updatedProfiles).catch((error: any) => {
-          console.error("❌ Error saving to cloud:", error)
-        })
-      }, 1000)
+      // Save to cloud in background, but don't block the UI
+      saveToCloud(updatedProfiles).catch((error: any) => {
+        console.error("❌ Cloud sync failed, but data is safe in localStorage:", error)
+      })
     }
   }
 
@@ -345,7 +344,7 @@ export default function TennisTracker() {
     }
   }, [smartAttendanceGroupId, currentProfile])
 
-  // Load profiles from cloud or localStorage on component mount
+  // Load profiles from localStorage FIRST, then sync with cloud if needed
   useEffect(() => {
     // Only load if we haven't loaded data for the current user yet
     if (hasLoadedData.current) return
@@ -353,6 +352,36 @@ export default function TennisTracker() {
     let isMounted = true
     
     const loadData = async () => {
+      // ALWAYS load from localStorage FIRST - this is the primary source
+      console.log("📂 Loading data from localStorage FIRST...")
+      const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
+      const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
+
+      if (savedProfiles) {
+        try {
+          const parsedProfiles = JSON.parse(savedProfiles).map((profile: any) => ({
+            ...profile,
+            students: profile.students || [],
+            groups: profile.groups || [],
+            attendanceRecords: profile.attendanceRecords || [],
+            archivedTerms: profile.archivedTerms || [],
+            completedMakeupSessions: profile.completedMakeupSessions || [],
+            makeupSessions: profile.makeupSessions || [],
+          }))
+          
+          if (isMounted) {
+            setProfiles(parsedProfiles as any)
+            if (savedCurrentProfile) {
+              setCurrentProfileId(savedCurrentProfile)
+            }
+            console.log("✅ Data loaded from localStorage - UI should show data immediately")
+          }
+        } catch (error: any) {
+          console.error("❌ Error parsing localStorage data:", error)
+        }
+      }
+      
+            // Now sync with cloud if signed in (but don't overwrite localStorage data)
       if (user && isSupabaseConfigured) {
         // Load from cloud when signed in
         console.log("🔄 Loading data from cloud for user:", user.id, user.email)
