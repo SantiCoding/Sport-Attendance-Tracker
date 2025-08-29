@@ -186,6 +186,9 @@ export default function TennisTracker() {
 
   const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({})
 
+  const saveDebounceTimer = useRef<NodeJS.Timeout | null>(null)
+  const lastSaveTime = useRef<number>(0)
+
   // Initialize dates on client side to prevent hydration issues
   useEffect(() => {
     const today = new Date()
@@ -638,57 +641,57 @@ export default function TennisTracker() {
 
   // Save profiles to cloud or localStorage whenever they change
   useEffect(() => {
-    console.log("🔄 Save effect triggered:", { 
-      profilesLength: profiles.length, 
-      user: !!user, 
-      isSupabaseConfigured,
-      isGuestMode: !user && isGuestMode,
-      hasLoadedFromCloud: hasLoadedFromCloudThisSession.current
-    })
+    // Debounce saves to prevent rapid successive saves
+    const now = Date.now()
+    if (saveDebounceTimer.current) {
+      clearTimeout(saveDebounceTimer.current)
+    }
+    
+    // Skip if we just saved (within 500ms)
+    if (now - lastSaveTime.current < 500) {
+      return
+    }
     
     // Skip saving if we haven't finished initial data loading yet
     if (!hasLoadedData.current) {
-      console.log("⏭️ Skipping save - initial data loading not complete")
       return
     }
     
     // Prevent saving empty profiles unless we're in guest mode or explicitly starting fresh
     if (profiles.length === 0 && user && isSupabaseConfigured) {
-      console.log("⏭️ Skipping save - no profiles to save for signed-in user")
       return
     }
     
-    // Always save when we have profiles, or when in guest mode (even with empty profiles)
-    // When signed in, save to cloud after we've loaded from cloud at least once in this session
-    if (profiles.length > 0 || (!user && isGuestMode)) {
-      if (user && isSupabaseConfigured) {
-        if (!hasLoadedFromCloudThisSession.current) {
-          console.log("⏭️ Skipping cloud save until initial cloud load completes to avoid duplicates")
-          return
-        }
-        // Save to cloud when signed in
-        console.log("🔄 Saving data to cloud...", { 
-          userEmail: (user as any)?.email, 
-          profilesCount: profiles.length,
-          firstProfile: profiles[0]?.name 
-        })
-        saveToCloud(profiles as any).then(() => {
-          console.log("✅ Data saved to cloud successfully")
-        }).catch((error) => {
-          console.error("❌ Error saving to cloud:", error)
-          // If cloud save fails, also save to localStorage as backup
-          console.log("💾 Saving to localStorage as backup due to cloud save failure")
+    // Debounce the actual save operation
+    saveDebounceTimer.current = setTimeout(() => {
+      lastSaveTime.current = Date.now()
+      
+      // Always save when we have profiles, or when in guest mode (even with empty profiles)
+      // When signed in, save to cloud after we've loaded from cloud at least once in this session
+      if (profiles.length > 0 || (!user && isGuestMode)) {
+        if (user && isSupabaseConfigured) {
+          if (!hasLoadedFromCloudThisSession.current) {
+            return
+          }
+          // Save to cloud when signed in
+          saveToCloud(profiles as any).then(() => {
+            console.log("✅ Data saved to cloud successfully")
+          }).catch((error) => {
+            console.error("❌ Error saving to cloud:", error)
+            // If cloud save fails, also save to localStorage as backup
+            localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
+          })
+        } else {
+          // Save to localStorage when not signed in or in guest mode
           localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
-        })
-      } else {
-        // Save to localStorage when not signed in or in guest mode
-        console.log("💾 Saving data to localStorage...", { 
-          profilesCount: profiles.length,
-          firstProfile: profiles[0]?.name,
-          isGuestMode: !user && isGuestMode
-        })
-        localStorage.setItem("tennisTrackerProfiles", JSON.stringify(profiles))
-        console.log("✅ Data saved to localStorage successfully")
+        }
+      }
+    }, 300) // 300ms debounce
+    
+    // Cleanup timer on unmount
+    return () => {
+      if (saveDebounceTimer.current) {
+        clearTimeout(saveDebounceTimer.current)
       }
     }
   }, [profiles, user?.id, isSupabaseConfigured]) // Remove saveToCloud from dependencies
