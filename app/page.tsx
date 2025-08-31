@@ -122,6 +122,65 @@ interface CoachProfile {
   makeupSessions?: MakeupSession[]
 }
 
+// Helper function to merge profiles - keeps local data and merges with cloud data
+const mergeProfiles = (localProfiles: CoachProfile[], cloudProfiles: CoachProfile[]): CoachProfile[] => {
+  const mergedProfiles: CoachProfile[] = []
+  const localById = new Map<string, CoachProfile>()
+  const cloudById = new Map<string, CoachProfile>()
+  
+  // Index local profiles by ID
+  localProfiles.forEach(profile => {
+    localById.set(profile.id, profile)
+  })
+  
+  // Index cloud profiles by ID
+  cloudProfiles.forEach(profile => {
+    cloudById.set(profile.id, profile)
+  })
+  
+  // Process all profiles (local + cloud)
+  const allIds = new Set([...localById.keys(), ...cloudById.keys()])
+  
+  allIds.forEach(id => {
+    const localProfile = localById.get(id)
+    const cloudProfile = cloudById.get(id)
+    
+    if (localProfile && cloudProfile) {
+      // Both exist - merge them (prefer local for conflicts)
+      const mergedProfile: CoachProfile = {
+        ...cloudProfile,
+        students: [...localProfile.students, ...cloudProfile.students.filter(cs => 
+          !localProfile.students.some(ls => ls.id === cs.id)
+        )],
+        groups: [...localProfile.groups, ...cloudProfile.groups.filter(cg => 
+          !localProfile.groups.some(lg => lg.id === cg.id)
+        )],
+        attendanceRecords: [...localProfile.attendanceRecords, ...cloudProfile.attendanceRecords.filter(ca => 
+          !localProfile.attendanceRecords.some(la => la.id === ca.id)
+        )],
+        archivedTerms: [...localProfile.archivedTerms, ...cloudProfile.archivedTerms.filter(cat => 
+          !localProfile.archivedTerms.some(lat => lat.id === cat.id)
+        )],
+        completedMakeupSessions: [...localProfile.completedMakeupSessions, ...cloudProfile.completedMakeupSessions.filter(cms => 
+          !localProfile.completedMakeupSessions.some(lms => lms.id === cms.id)
+        )],
+        makeupSessions: [...(localProfile.makeupSessions || []), ...(cloudProfile.makeupSessions || []).filter(cms => 
+          !(localProfile.makeupSessions || []).some(lms => lms.id === cms.id)
+        )],
+      }
+      mergedProfiles.push(mergedProfile)
+    } else if (localProfile) {
+      // Only local exists - keep it
+      mergedProfiles.push(localProfile)
+    } else if (cloudProfile) {
+      // Only cloud exists - add it
+      mergedProfiles.push(cloudProfile)
+    }
+  })
+  
+  return mergedProfiles
+}
+
 export default function TennisTracker() {
   // Debug log to verify the latest changes are loaded
   console.log("🎾 Tennis Tracker - Latest version loaded with glass-delete-button styling - FORCE DEPLOY");
@@ -414,9 +473,21 @@ export default function TennisTracker() {
             }
           }
           const finalCloudProfiles = Array.from(byName.values()) as any[]
-          setProfiles(finalCloudProfiles as any)
-          setCurrentProfileId(cloudProfiles[0].id)
-          console.log("✅ Data loaded from cloud")
+          
+          // ✅ FIXED: MERGE cloud data with existing local data instead of replacing
+          const currentLocalProfiles = profiles.length > 0 ? profiles : []
+          const mergedProfiles = mergeProfiles(currentLocalProfiles, finalCloudProfiles)
+          
+          setProfiles(mergedProfiles as any)
+          // Keep current profile ID if it exists, otherwise use first cloud profile
+          if (!currentProfileId && cloudProfiles[0]?.id) {
+            setCurrentProfileId(cloudProfiles[0].id)
+          }
+          
+          // Update localStorage with merged data as backup
+          localStorage.setItem("tennisTrackerProfiles", JSON.stringify(mergedProfiles))
+          
+          console.log("✅ Data loaded from cloud and merged with local data")
           hasLoadedFromCloudThisSession.current = true
         } else {
           // First-time sign-in migration: if cloud is empty, import guest/local data ONCE
