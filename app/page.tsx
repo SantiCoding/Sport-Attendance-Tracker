@@ -183,7 +183,8 @@ const mergeProfiles = (localProfiles: CoachProfile[], cloudProfiles: CoachProfil
 
 export default function TennisTracker() {
   // Debug log to verify the latest changes are loaded
-  console.log("🎾 Tennis Tracker - Latest version loaded with glass-delete-button styling - FORCE DEPLOY");
+  console.log("🎾 Tennis Tracker - VERSION 2.1 - CACHE BUSTING FORCE REFRESH");
+  console.log("🎾 Build timestamp:", new Date().toISOString());
   const { toast } = useToast()
   const { user, loading, signInWithGoogle, signOut, isSupabaseConfigured } = useAuth()
   const { loadFromCloud, saveToCloud, syncing, lastSyncTime, syncStatus } = useCloudSync(user)

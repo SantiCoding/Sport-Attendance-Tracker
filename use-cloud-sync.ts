@@ -98,6 +98,13 @@ export function useCloudSync(user: User | null) {
     }
   }, [])
 
+  // Force cache refresh - this will help identify if old code is running
+  useEffect(() => {
+    console.log("🔄 CLOUD SYNC HOOK INITIALIZED - VERSION 2.1")
+    console.log("🔄 Current user:", user?.email)
+    console.log("🔄 Supabase configured:", isSupabaseConfigured)
+  }, [user?.id])
+
   // Generate a proper UUID v4
   const generateUUID = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

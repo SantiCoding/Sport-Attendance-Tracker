@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tennis-tracker-v3';
+const CACHE_NAME = 'tennis-tracker-v4-force-refresh';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/placeholder-logo.png',
