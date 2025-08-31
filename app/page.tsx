@@ -699,6 +699,14 @@ export default function TennisTracker() {
     hasLoadedFromCloudThisSession.current = false
   }, [user?.id])
 
+  // Auto-show create profile dialog when no profiles exist
+  useEffect(() => {
+    if (hasLoadedData.current && profiles.length === 0 && !showCreateProfile) {
+      console.log("📝 No profiles found - showing create profile dialog")
+      setShowCreateProfile(true)
+    }
+  }, [hasLoadedData.current, profiles.length, showCreateProfile])
+
   // Ensure data is saved to cloud when user signs in
   useEffect(() => {
     if (user && isSupabaseConfigured && hasLoadedFromCloudThisSession.current && profiles.length > 0) {
@@ -3460,11 +3468,24 @@ export default function TennisTracker() {
       </div>
 
       {/* Create Profile Dialog */}
-      <Dialog open={showCreateProfile} onOpenChange={setShowCreateProfile}>
+      <Dialog 
+        open={showCreateProfile} 
+        onOpenChange={(open) => {
+          // Only allow closing if there are profiles (not when forced to create first profile)
+          if (profiles.length > 0 || !open) {
+            setShowCreateProfile(open)
+          }
+        }}
+      >
         <DialogContent className="glass-dropdown w-[95vw] max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-primary-white">Create New Coach Profile</DialogTitle>
-            <DialogDescription className="text-secondary-white">Fill in the details and click Create Profile.</DialogDescription>
+            <DialogDescription className="text-secondary-white">
+              {profiles.length === 0 
+                ? "Welcome! Create your first coach profile to get started." 
+                : "Fill in the details and click Create Profile."
+              }
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="form-field">
@@ -3477,17 +3498,24 @@ export default function TennisTracker() {
                 onChange={(e) => setNewProfileName(e.target.value)}
                 placeholder="Enter coach name"
                 className="glass-input text-primary-white placeholder:text-tertiary-white mt-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newProfileName.trim()) {
+                    createProfile()
+                  }
+                }}
               />
             </div>
           </div>
           <DialogFooter className="form-buttons flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowCreateProfile(false)}
-              className="glass-button text-primary-white min-h-[48px] w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
+            {profiles.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => setShowCreateProfile(false)}
+                className="glass-button text-primary-white min-h-[48px] w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               onClick={createProfile}
               disabled={!newProfileName.trim()}
