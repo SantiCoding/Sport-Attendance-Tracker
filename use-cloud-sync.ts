@@ -574,10 +574,19 @@ export function useCloudSync(user: User | null) {
       // Execute all insertions in parallel
       const insertResults = await Promise.all(insertPromises)
       
-      // Check for errors
-      for (const result of insertResults) {
+      // Check for errors with detailed logging
+      for (let i = 0; i < insertResults.length; i++) {
+        const result = insertResults[i]
         if (result.error) {
-          console.error("❌ Batch insert error:", result.error)
+          const tableNames = ['students', 'groups', 'attendance_records', 'completed_makeup_sessions']
+          const tableName = tableNames[i] || 'unknown'
+          console.error(`❌ Batch insert error for ${tableName}:`, {
+            error: result.error,
+            message: result.error.message,
+            details: result.error.details,
+            hint: result.error.hint,
+            code: result.error.code
+          })
           throw result.error
         }
       }
