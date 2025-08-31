@@ -232,7 +232,8 @@ export function useCloudSync(user: User | null) {
       // Load all data for all profiles in parallel for better performance
       const profileIds = profiles.map(p => p.id)
       
-      // Parallel queries for better performance
+      // ✅ FIXED: Query child tables by user_id instead of profile_id
+      // This ensures RLS policies work correctly across all devices
       const [
         { data: allStudents, error: studentsError },
         { data: allGroups, error: groupsError },
@@ -240,11 +241,11 @@ export function useCloudSync(user: User | null) {
         { data: allArchivedTerms, error: archivedError },
         { data: allCompletedMakeups, error: makeupError }
       ] = await Promise.all([
-        supabase.from("students").select("*").in("profile_id", profileIds),
-        supabase.from("groups").select("*").in("profile_id", profileIds),
-        supabase.from("attendance_records").select("*").in("profile_id", profileIds),
-        supabase.from("archived_terms").select("*").in("profile_id", profileIds),
-        supabase.from("completed_makeup_sessions").select("*").in("profile_id", profileIds)
+        supabase.from("students").select("*").eq("user_id", user.id),
+        supabase.from("groups").select("*").eq("user_id", user.id),
+        supabase.from("attendance_records").select("*").eq("user_id", user.id),
+        supabase.from("archived_terms").select("*").eq("user_id", user.id),
+        supabase.from("completed_makeup_sessions").select("*").eq("user_id", user.id)
       ])
 
       if (studentsError) throw studentsError
@@ -264,7 +265,7 @@ export function useCloudSync(user: User | null) {
           const { data: makeupData, error: makeupSessionsError, status } = await supabase
             .from("makeup_sessions")
             .select("*")
-            .in("profile_id", profileIds)
+            .eq("user_id", user.id)
           
           if (!makeupSessionsError && makeupData) {
             allMakeupSessions = makeupData
@@ -479,20 +480,22 @@ export function useCloudSync(user: User | null) {
       }
       console.log("✅ All profiles saved successfully")
 
-      // Clear all existing data for all profiles in parallel
-      const profileIds = migratedProfiles.map(p => p.id)
+      // ✅ FIXED: Clear existing data by user_id instead of profile_id
+      // This ensures we only clear data for the current user
       await Promise.all([
-        supabase.from("students").delete().in("profile_id", profileIds),
-        supabase.from("groups").delete().in("profile_id", profileIds),
-        supabase.from("attendance_records").delete().in("profile_id", profileIds),
-        supabase.from("completed_makeup_sessions").delete().in("profile_id", profileIds)
+        supabase.from("students").delete().eq("user_id", user.id),
+        supabase.from("groups").delete().eq("user_id", user.id),
+        supabase.from("attendance_records").delete().eq("user_id", user.id),
+        supabase.from("completed_makeup_sessions").delete().eq("user_id", user.id),
+        supabase.from("archived_terms").delete().eq("user_id", user.id)
       ])
 
-      // Prepare all data for batch insertion
+      // Prepare all data for batch insertion - FIXED to include user_id
       const allStudents = migratedProfiles.flatMap(profile => 
         profile.students.map((s) => ({
           id: s.id,
           profile_id: profile.id,
+          user_id: user.id, // ✅ FIXED: Added user_id
           name: s.name,
           notes: s.notes,
           prepaid_sessions: s.prepaidSessions,
@@ -506,6 +509,7 @@ export function useCloudSync(user: User | null) {
         profile.groups.map((g) => ({
           id: g.id,
           profile_id: profile.id,
+          user_id: user.id, // ✅ FIXED: Added user_id
           name: g.name,
           type: g.type,
           student_ids: g.studentIds,
@@ -519,6 +523,7 @@ export function useCloudSync(user: User | null) {
         profile.attendanceRecords.map((a) => ({
           id: a.id,
           profile_id: profile.id,
+          user_id: user.id, // ✅ FIXED: Added user_id
           date: a.date,
           time: a.time,
           group_id: a.groupId,
@@ -536,6 +541,7 @@ export function useCloudSync(user: User | null) {
         profile.completedMakeupSessions.map((m) => ({
           id: m.id,
           profile_id: profile.id,
+          user_id: user.id, // ✅ FIXED: Added user_id
           student_id: m.studentId,
           student_name: m.studentName,
           date: m.date,
@@ -576,14 +582,15 @@ export function useCloudSync(user: User | null) {
         }
       }
 
-      // Handle archived terms for all profiles
-      for (const profile of migratedProfiles) {
-        await supabase.from("archived_terms").delete().eq("profile_id", profile.id)
+              // Handle archived terms for all profiles - FIXED to include user_id
+        for (const profile of migratedProfiles) {
+          // Archived terms are already cleared by user_id above, so no need to clear by profile_id
         if (profile.archivedTerms.length > 0) {
           const { error: archivedError } = await supabase.from("archived_terms").insert(
             profile.archivedTerms.map((t) => ({
               id: t.id,
               profile_id: profile.id,
+              user_id: user.id, // ✅ FIXED: Added user_id
               name: t.name,
               start_month: t.startMonth,
               end_month: t.endMonth,
