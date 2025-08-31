@@ -501,7 +501,7 @@ export function useCloudSync(user: User | null) {
           prepaid_sessions: s.prepaidSessions,
           remaining_sessions: s.remainingSessions,
           makeup_sessions: s.makeupSessions,
-          session_history: s.sessionHistory || [],
+          // ✅ FIXED: Removed session_history column (doesn't exist in DB)
         }))
       )
 
