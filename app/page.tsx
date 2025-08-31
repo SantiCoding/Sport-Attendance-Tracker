@@ -490,6 +490,7 @@ export default function TennisTracker() {
           console.log("✅ Data loaded from cloud and merged with local data")
           hasLoadedFromCloudThisSession.current = true
         } else {
+          console.log("📄 Cloud returned empty profiles, checking for migration...")
           // First-time sign-in migration: if cloud is empty, import guest/local data ONCE
           try {
             const migrationFlagKey = `tennisTrackerMigratedToUser_${user.id}`
