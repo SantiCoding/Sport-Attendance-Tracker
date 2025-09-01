@@ -53,6 +53,7 @@ import { MenuBar } from "@/components/menu-bar"
 import { StudentDialog } from "@/components/student-dialog"
 import { GroupDialog } from "@/components/group-dialog"
 import { TermFinalizationDialogWrapper } from "../components/term-finalization-dialog-wrapper"
+import { motion, PanInfo } from "framer-motion"
 
 // Types
 interface Student {
@@ -1713,7 +1714,7 @@ export default function TennisTracker() {
                     <span className="w-full border-t border-white/20" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-black px-2 text-secondary-white">or</span>
+                    <span className="bg-background px-2 text-secondary-white">or</span>
                   </div>
                 </div>
 
@@ -2006,8 +2007,27 @@ export default function TennisTracker() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="px-2 sm:px-4">
+      {/* Main Content with Mobile Swipe Support */}
+      <motion.div 
+        className="px-2 sm:px-4"
+        onPanEnd={(event, info) => {
+          // Only enable swipe on mobile
+          if (window.innerWidth < 768) {
+            const threshold = 100 // Minimum distance for swipe
+            const tabs = ["students", "groups", "attendance", "makeup", "reports", "smart-sorter"]
+            const currentIndex = tabs.indexOf(activeTab)
+            
+            if (info.offset.x > threshold && currentIndex > 0) {
+              // Swipe right - go to previous tab
+              setActiveTab(tabs[currentIndex - 1])
+            } else if (info.offset.x < -threshold && currentIndex < tabs.length - 1) {
+              // Swipe left - go to next tab
+              setActiveTab(tabs[currentIndex + 1])
+            }
+          }
+        }}
+        style={{ touchAction: 'pan-y' }} // Allow vertical scrolling, handle horizontal swipes
+      >
         <div className="max-w-7xl mx-auto">
           {/* Record Attendance Page */}
           {activeTab === "attendance" && (
@@ -3466,6 +3486,7 @@ export default function TennisTracker() {
             </div>
           )}
         </div>
+      </motion.div>
       </div>
 
       {/* Create Profile Dialog */}
