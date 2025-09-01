@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
-import { supabase, isSupabaseConfigured } from "./supabase"
+import { supabase } from "@/lib/supabaseClient"
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -11,7 +11,7 @@ export function useAuth() {
   useEffect(() => {
     // Check if Supabase is properly configured
     const initializeAuth = async () => {
-      if (!isSupabaseConfigured) {
+      if (!supabase) {
         setLoading(false)
         return
       }
@@ -128,7 +128,7 @@ export function useAuth() {
   }, [])
 
   const signInWithGoogle = async () => {
-    if (!isSupabaseConfigured) {
+    if (!supabase) {
       alert(
         "Cloud sync is not available in preview mode. To enable Google sign-in, please deploy the app with proper Supabase configuration.",
       )
@@ -162,7 +162,7 @@ export function useAuth() {
   }
 
   const signOut = async () => {
-    if (!isSupabaseConfigured) {
+    if (!supabase) {
       return
     }
 
@@ -183,6 +183,6 @@ export function useAuth() {
     loading,
     signInWithGoogle,
     signOut,
-    isSupabaseConfigured,
+    isSupabaseConfigured: !!supabase,
   }
 }

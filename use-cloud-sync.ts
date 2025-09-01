@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import type { User } from "@supabase/supabase-js"
-import { supabase, isSupabaseConfigured } from "./supabase"
+import { supabase } from "@/lib/supabaseClient"
 
 // Types
 interface Student {
@@ -67,11 +67,16 @@ interface MakeupSession {
   studentId: string
   originalDate?: string
   originalGroupId?: string
+  originalTime?: string
   reason: string
   notes: string
   createdDate: string
   status: "pending" | "completed"
+  scheduledDate?: string
+  scheduledTime?: string
+  scheduledGroupId?: string
   completedDate?: string
+  completedNotes?: string
 }
 
 interface CoachProfile {
@@ -102,7 +107,7 @@ export function useCloudSync(user: User | null) {
   useEffect(() => {
     console.log("🔄 CLOUD SYNC HOOK INITIALIZED - VERSION 2.1")
     console.log("🔄 Current user:", user?.email)
-    console.log("🔄 Supabase configured:", isSupabaseConfigured)
+    console.log("🔄 Supabase configured:", supabase !== null)
   }, [user?.id])
 
   // Generate a proper UUID v4
@@ -209,7 +214,7 @@ export function useCloudSync(user: User | null) {
 
   // Load data from cloud with optimized parallel queries
   const loadFromCloud = async (): Promise<CoachProfile[]> => {
-    if (!user || !isSupabaseConfigured) return []
+    if (!user || supabase === null) return []
 
     setSyncing(true)
     setSyncStatus("syncing")
@@ -404,6 +409,7 @@ export function useCloudSync(user: User | null) {
             studentId: m.student_id,
             originalDate: m.original_date,
             originalGroupId: m.original_group_id,
+            originalTime: m.original_time,
             reason: m.reason,
             notes: m.notes,
             createdDate: m.created_date,
@@ -413,7 +419,6 @@ export function useCloudSync(user: User | null) {
             scheduledGroupId: m.scheduled_group_id,
             completedDate: m.completed_date,
             completedNotes: m.completed_notes,
-            originalTime: m.original_time,
           })),
         }
 
@@ -437,8 +442,8 @@ export function useCloudSync(user: User | null) {
   const saveToCloud = async (profiles: CoachProfile[]) => {
     console.log("🚀 NEW VERSION DEPLOYED - Enhanced error logging active!")
     
-    if (!user || !isSupabaseConfigured) {
-      console.log("❌ Cannot save to cloud:", { user: !!user, isSupabaseConfigured })
+    if (!user || supabase === null) {
+      console.log("❌ Cannot save to cloud:", { user: !!user, isSupabaseConfigured: supabase !== null })
       return
     }
 
