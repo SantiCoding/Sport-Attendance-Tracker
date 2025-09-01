@@ -54,6 +54,7 @@ import { StudentDialog } from "@/components/student-dialog"
 import { GroupDialog } from "@/components/group-dialog"
 import { TermFinalizationDialogWrapper } from "../components/term-finalization-dialog-wrapper"
 import { motion, PanInfo } from "framer-motion"
+import { supabase } from "@/lib/supabaseClient"
 
 // Types
 interface Student {
@@ -261,6 +262,38 @@ export default function TennisTracker() {
     }
   }, [])
 
+  // Initialize auth and load data on app startup
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Check if user is already authenticated
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          console.log("✅ User already authenticated:", session.user.email)
+          // Load data from cloud for authenticated user
+          try {
+            const cloudProfiles = await loadFromCloud()
+            if (cloudProfiles.length > 0) {
+              setProfiles(cloudProfiles as any)
+              hasLoadedFromCloudThisSession.current = true
+              console.log("✅ Cloud data loaded on app startup")
+            }
+          } catch (error) {
+            console.error("❌ Error loading cloud data on startup:", error)
+          }
+        } else {
+          console.log("ℹ️ No authenticated user found on startup")
+        }
+      } catch (error) {
+        console.error("❌ Error initializing app:", error)
+      }
+    }
+
+    if (supabase) {
+      initializeApp()
+    }
+  }, [supabase])
+
   const toggleCardExpansion = (cardId: string) => {
     setExpandedCards((prev) => ({
       ...prev,
@@ -449,7 +482,7 @@ export default function TennisTracker() {
       }
       
             // Now sync with cloud if signed in (but don't overwrite localStorage data)
-      if (user && isSupabaseConfigured) {
+      if (user && supabase) {
         // Load from cloud when signed in
         console.log("🔄 Loading data from cloud for user:", user.id, user.email)
         try {
@@ -711,7 +744,7 @@ export default function TennisTracker() {
 
   // Ensure data is saved to cloud when user signs in
   useEffect(() => {
-    if (user && isSupabaseConfigured && hasLoadedFromCloudThisSession.current && profiles.length > 0) {
+            if (user && supabase && hasLoadedFromCloudThisSession.current && profiles.length > 0) {
       console.log("🔄 User signed in, ensuring data is saved to cloud...")
       saveToCloud(profiles as any).then(() => {
         console.log("✅ Data saved to cloud after sign-in")
