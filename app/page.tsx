@@ -2014,7 +2014,7 @@ export default function TennisTracker() {
           // Only enable swipe on mobile
           if (window.innerWidth < 768) {
             const threshold = 100 // Minimum distance for swipe
-            const tabs = ["students", "groups", "attendance", "makeup", "reports", "smart-sorter"]
+            const tabs = ["students", "attendance", "search", "makeup", "reports"]
             const currentIndex = tabs.indexOf(activeTab)
             
             if (info.offset.x > threshold && currentIndex > 0) {
@@ -3487,7 +3487,6 @@ export default function TennisTracker() {
           )}
         </div>
       </motion.div>
-      </div>
 
       {/* Create Profile Dialog */}
       <Dialog 
