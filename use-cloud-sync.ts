@@ -494,7 +494,8 @@ export function useCloudSync(user: User | null) {
         supabase.from("groups").delete().eq("user_id", user.id),
         supabase.from("attendance_records").delete().eq("user_id", user.id),
         supabase.from("completed_makeup_sessions").delete().eq("user_id", user.id),
-        supabase.from("archived_terms").delete().eq("user_id", user.id)
+        supabase.from("archived_terms").delete().eq("user_id", user.id),
+        supabase.from("makeup_sessions").delete().eq("user_id", user.id)
       ])
 
       // Prepare all data for batch insertion - FIXED to include user_id
@@ -504,10 +505,10 @@ export function useCloudSync(user: User | null) {
           profile_id: profile.id,
           user_id: user.id, // ✅ FIXED: Added user_id
           name: s.name,
-          notes: s.notes,
-          prepaid_sessions: s.prepaidSessions,
-          remaining_sessions: s.remainingSessions,
-          makeup_sessions: s.makeupSessions,
+          notes: s.notes || '',
+          prepaid_sessions: s.prepaidSessions || 0,
+          remaining_sessions: s.remainingSessions || 0,
+          makeup_sessions: s.makeupSessions || 0,
           // ✅ FIXED: Removed session_history column (doesn't exist in DB)
         }))
       )
@@ -519,10 +520,10 @@ export function useCloudSync(user: User | null) {
           user_id: user.id, // ✅ FIXED: Added user_id
           name: g.name,
           type: g.type,
-          student_ids: g.studentIds,
-          day_of_week: Array.isArray(g.dayOfWeek) ? g.dayOfWeek.join(',') : g.dayOfWeek,
-          time: g.time,
-          duration: g.duration,
+          student_ids: g.studentIds || [],
+          day_of_week: Array.isArray(g.dayOfWeek) ? g.dayOfWeek.join(',') : g.dayOfWeek || null,
+          time: g.time || null,
+          duration: g.duration || null,
         }))
       )
 
@@ -536,11 +537,11 @@ export function useCloudSync(user: User | null) {
           group_id: a.groupId,
           student_id: a.studentId,
           status: a.status,
-          notes: a.notes,
-          time_adjustment_amount: a.timeAdjustmentAmount,
-          time_adjustment_type: a.timeAdjustmentType,
-          time_adjustment_reason: a.timeAdjustmentReason,
-          cancel_reason: a.cancelReason,
+          notes: a.notes || '',
+          time_adjustment_amount: a.timeAdjustmentAmount || null,
+          time_adjustment_type: a.timeAdjustmentType || null,
+          time_adjustment_reason: a.timeAdjustmentReason || null,
+          cancel_reason: a.cancelReason || null,
         }))
       )
 
@@ -552,10 +553,31 @@ export function useCloudSync(user: User | null) {
           student_id: m.studentId,
           student_name: m.studentName,
           date: m.date,
-          group_id: m.groupId,
-          group_name: m.groupName,
+          group_id: m.groupId || null,
+          group_name: m.groupName || null,
           type: m.type,
           completed_date: m.completedDate,
+        }))
+      )
+
+      const allMakeupSessions = migratedProfiles.flatMap(profile => 
+        profile.makeupSessions.map((m) => ({
+          id: m.id,
+          profile_id: profile.id,
+          user_id: user.id, // ✅ FIXED: Added user_id
+          student_id: m.studentId,
+          original_date: m.originalDate || null,
+          original_group_id: m.originalGroupId || null,
+          original_time: m.originalTime || null,
+          reason: m.reason,
+          notes: m.notes || '',
+          created_date: m.createdDate,
+          status: m.status,
+          scheduled_date: m.scheduledDate || null,
+          scheduled_time: m.scheduledTime || null,
+          scheduled_group_id: m.scheduledGroupId || null,
+          completed_date: m.completedDate || null,
+          completed_notes: m.completedNotes || null,
         }))
       )
 
@@ -577,6 +599,10 @@ export function useCloudSync(user: User | null) {
       if (allCompletedMakeups.length > 0) {
         insertPromises.push(supabase.from("completed_makeup_sessions").insert(allCompletedMakeups))
       }
+      
+      if (allMakeupSessions.length > 0) {
+        insertPromises.push(supabase.from("makeup_sessions").insert(allMakeupSessions))
+      }
 
       // Execute all insertions in parallel
       const insertResults = await Promise.all(insertPromises)
@@ -585,7 +611,7 @@ export function useCloudSync(user: User | null) {
       for (let i = 0; i < insertResults.length; i++) {
         const result = insertResults[i]
         if (result.error) {
-          const tableNames = ['students', 'groups', 'attendance_records', 'completed_makeup_sessions']
+          const tableNames = ['students', 'groups', 'attendance_records', 'completed_makeup_sessions', 'makeup_sessions']
           const tableName = tableNames[i] || 'unknown'
           console.error(`❌ Batch insert error for ${tableName}:`, {
             error: result.error,
