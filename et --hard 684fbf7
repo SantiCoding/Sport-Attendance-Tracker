@@ -1,0 +1,82 @@
+[33m3f874f3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m feat: implement persistent bottom navigation for mobile
+[33m02109ab[m feat: Tennis Tracker with Clash Royale-style mobile navigation
+[33md0131bf[m[33m ([m[1;31morigin/fix/persistence-guest-google-migration[m[33m, [m[1;32mfix/persistence-guest-google-migration[m[33m)[m Add automatic create profile dialog when no profiles exist - Prevents users from accessing app without creating a profile first - Shows welcome message for first-time users - Prevents dialog dismissal when no profiles exist - Adds Enter key support for quick profile creation
+[33m014f02b[m fix(save): remove non-existent session_history column from students insert; this was causing save failures
+[33m9fc592d[m fix(data-persistence): improve cloud data loading logic; prevent data loss when cloud returns empty; add debug SQL script
+[33m257098e[m fix(400-errors): add detailed error logging and create safer SQL script; fix batch insert error reporting
+[33m94420e4[m fix(400-errors): add detailed error logging and create safer SQL script; fix batch insert error reporting
+[33macd3085[m fix(mobile-sync): fix cross-device data loading by querying by user_id instead of profile_id; ensure RLS policies work correctly; add comprehensive SQL migration script
+[33m702299b[m perf(save): add debouncing to prevent rapid successive saves; reduce console noise
+[33m56d5d30[m feat(sync): timeout + background-first sync status; add fixed non-shifting badge with last sync time; never leave syncing indefinitely
+[33md0ffd0f[m fix(a11y): add DialogDescription to all DialogContent to satisfy aria-describedby warning
+[33m450fae2[m chore(sync): cache makeup_sessions 404 to avoid repeated failing requests
+[33m39db1a7[m fix(page): remove stale scheduleSync import and align types for saveToCloud
+[33m37f334f[m feat(debug): add /debug/sync page; export merge helpers; expose computeMergePlan for tests
+[33m09e27a8[m fix(pwa): avoid caching Next.js chunks, enable immediate SW activation, auto-reload on update
+[33md4f62ae[m chore: push latest changes
+[33md13c07d[m feat: implement robust persistence system with guest/Google modes and migration
+[33md02b36c[m Fix data persistence - localStorage is now PRIMARY data source, cloud sync is secondary
+[33m18cca5e[m Fix data disappearing issue - improve localStorage fallback when cloud is empty
+[33m250d191[m Fix syntax errors in use-cloud-sync.ts - remove extra braces and fix structure
+[33mb303beb[m Remove recovery feature and loading states - focus on core data saving
+[33mb1a9b56[m Performance optimizations and data recovery improvements
+[33m552c751[m Enhanced tennis tracker with improved session tracking and group management
+[33m2155a3e[m Add PWA, Swipe Navigation, and Performance Optimizations
+[33m8379fcb[m Fix data disappearing issue after refresh - Added missing hasLoadedFromCloud flags and improved data persistence logic
+[33m9d2ac73[m Fix Google Sign-In data persistence issues
+[33m92b4e2e[m Fix mobile responsiveness and UI issues
+[33m16da923[m Ensure strict cloud vs guest separation, first-sign-in guest migration, and dedupe on cloud/local load to prevent duplicates
+[33m6d415c0[m Fix duplicate profile creation: add cleanup function, prevent saves during initial load, check for existing profile names
+[33mea3ca4d[m Avoid duplicate profile creation: save to cloud only after initial cloud load in session; add guard ref
+[33m879b786[m Fix migration to skip profiles that already have proper UUIDs
+[33m0a1ccb9[m Fix cloud data loading issue - ensure fresh data loads when user changes
+[33m825c995[m Improve debugging and fix guest mode save condition
+[33m3c45496[m Add debugging logs for guest mode localStorage operations
+[33m3ed56df[m Add database migration script and temporarily revert to compatible schema
+[33m81443a8[m Fix missing remainingSessions and group properties in cloud sync
+[33me7d8c82[m Add data migration to convert old timestamp IDs to proper UUIDs
+[33m0ec4217[m Fix UUID generation for all database IDs - replace timestamp-based IDs with proper UUIDs
+[33m7dc487e[m Add version confirmation and simple error logging
+[33mb06929c[m Add comprehensive error logging and database connection test
+[33m41f83eb[m Add detailed error logging to identify 400 error in cloud sync
+[33m6a0808a[m Add comprehensive debugging to cloud sync to identify data sync issues
+[33m5ecff34[m Fix welcome page to always show sign-in option when not signed in, even with local data
+[33mdd64480[m Fix React infinite re-render loop by removing function dependencies and adding load guard
+[33m6cddd3b[m Fix import path in use-cloud-sync.ts to resolve build error
+[33m56c1668[m Integrate cloud sync functionality - data now syncs between devices when signed in
+[33mc86a713[m Add user menu with sign-out functionality and sign-in button to header
+[33ma3772ef[m Fix OAuth by redirecting to main app and removing callback page entirely
+[33m87a921b[m Add comprehensive debugging and fallback token extraction to callback page
+[33m047b254[m Fix OAuth callback 404 by removing route.ts conflict - only page.tsx remains
+[33mde9eedf[m Add enhanced debugging and URL path token extraction to callback page
+[33md91a84d[m Fix OAuth callback with client-side page and sessionStorage token handling
+[33m6575998[m Improve OAuth token processing with better debugging and immediate execution
+[33m26f960a[m Add debugging and force refresh for OAuth token processing
+[33mdb0b94f[m Fix OAuth hash fragment token handling for proper authentication flow
+[33m9654b25[m Improve Google OAuth flow for all users with better error handling and production redirects
+[33m2020bef[m Fix OAuth callback route import path and add better error handling
+[33m78ff086[m Add guest mode functionality with local storage and sign-in upgrade option
+[33mfab8086[m Fix import path in use-auth.ts to resolve build error
+[33mf16a0a2[m Add Google Sign-in functionality to Attendance Tracker
+[33m921ff69[m Update welcome page and metadata to Attendance Tracker
+[33m6bc7bec[m Update project name to Sport-Attendance-Tracker and enhance README with comprehensive feature description
+[33m0ca9b2e[m Add Vercel Speed Insights and update project name to tennis-tracker
+[33md42d4bf[m Clean: Remove V0-related files and development artifacts
+[33me47fc7d[m UI: Enhance mobile navigation with backdrop blur for better fixed positioning
+[33m61c6272[m UI: Add hover effects to search tab group badges to match Students tab exactly
+[33m00891e6[m UI: Add group badges to search tab non-expanded state with glassy styling
+[33ma47a8a3[m UI: Apply liquid glass style to group tags in search tab
+[33m7645d20[m UI: Apply liquid glass style to top badges and remove blue color from group tags
+[33m3d4a4a6[m UI: Replace colored badges with clean white text in Groups section, show prepaid sessions
+[33mbef298c[m UI: Remove session info from non-expanded student cards
+[33m2b6cf04[m UI: Remove blue remaining badge, show session info as white text
+[33m3bd5081[m Fix: Navigation bar properly fixed at bottom with rounded indicator and shorter 'Makeup' text
+[33mb41b28e[m Fix: Remove duplicate 'min' from time adjustments; Move nav to floating bottom with better styling
+[33m3ac1b37[m Mobile nav: Move to exact position between Attendance Tracker and Students & Groups section
+[33m13aac3c[m UI: Remove redundant red sessions badge, show time adjustment reason in cleaner format
+[33m737b38b[m Mobile nav: Move to top of screen, adjust indicator position and content padding
+[33m4be761c[m Fix: Time adjustments show in reports; Cancelled sessions show red with 'CANCELLED' label and go to make-up tab
+[33m7fae756[m Remove Reset All button; Add expandable feature to Students tab showing prepaid/remaining/makeup sessions and notes
+[33mfe52de6[m Mobile nav: Enhanced backdrop and visibility; Add Reset All button for pending make-ups to clear unknown students
+[33m04aac65[m Mobile nav: Always visible with z-[9999], increased bottom padding, added backdrop blur
+[33mbaa63e0[m 

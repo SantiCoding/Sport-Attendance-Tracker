@@ -1,0 +1,158 @@
+﻿===== PUBLIC (text only) =====
+Generated: 2025-09-09T22:40:44.4111882+12:00
+
+----- BEGIN FILE: public/manifest.json -----
+{
+  "name": "Tennis Attendance Tracker",
+  "short_name": "Tennis Tracker",
+  "description": "Professional tennis attendance management system for coaches",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["sports", "education", "productivity"],
+  "icons": [
+    {
+      "src": "/placeholder-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/placeholder-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/placeholder.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/placeholder.jpg",
+      "sizes": "750x1334",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Student",
+      "short_name": "Add Student",
+      "description": "Quickly add a new student",
+      "url": "/?action=add-student",
+      "icons": [
+        {
+          "src": "/placeholder-logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Record Attendance",
+      "short_name": "Attendance",
+      "description": "Record today's attendance",
+      "url": "/?action=attendance",
+      "icons": [
+        {
+          "src": "/placeholder-logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "View Reports",
+      "short_name": "Reports",
+      "description": "View attendance reports",
+      "url": "/?action=reports",
+      "icons": [
+        {
+          "src": "/placeholder-logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
+
+----- END FILE: public/manifest.json -----
+
+----- BEGIN FILE: public/sw.js -----
+const CACHE_NAME = 'tennis-tracker-v4-force-refresh';
+const STATIC_ASSETS = [
+  '/manifest.json',
+  '/placeholder-logo.png',
+  '/placeholder-logo.svg'
+];
+
+// Ensure new SW takes control ASAP
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
+          }
+        })
+      );
+      await self.clients.claim();
+    })()
+  );
+});
+
+// Fetch strategy:
+// - Never cache Next.js build assets or HTML documents (network-first)
+// - Cache-first for small static assets we explicitly listed
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  // Bypass for Next build assets and API routes
+  const isNextAsset = url.pathname.startsWith('/_next/');
+  const isDocument = request.destination === 'document' || (request.mode === 'navigate');
+
+  if (isNextAsset || isDocument) {
+    event.respondWith(fetch(request).catch(() => caches.match(request)));
+    return;
+  }
+
+  // Cache-first for static assets we precached
+  if (STATIC_ASSETS.includes(url.pathname)) {
+    event.respondWith(
+      caches.match(request).then((cached) => cached || fetch(request))
+    );
+    return;
+  }
+
+  // Default: network-first with fallback to cache
+  event.respondWith(
+    fetch(request)
+      .then((response) => response)
+      .catch(() => caches.match(request))
+  );
+});
+
+----- END FILE: public/sw.js -----
+
+===== END PUBLIC (text only) =====

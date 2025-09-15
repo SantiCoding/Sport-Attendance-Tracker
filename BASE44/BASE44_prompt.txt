@@ -1,0 +1,67 @@
+BASE44 TENNIS TRACKER - COMPLETE RECONSTRUCTION PROMPT
+
+You are Base44, an AI that can create and run applications. I need you to reconstruct a complete Next.js tennis tracking application from the provided text files.
+
+CRITICAL REQUIREMENTS:
+1. This is a LOCAL-ONLY app - NO Google sign-in, NO Supabase, NO cloud sync
+2. Uses localStorage for data persistence (guest mode only)
+3. Must look and function EXACTLY the same as the original
+4. All styling and UI components must be preserved
+
+FILES TO PROCESS:
+- ALL_CODE_root.txt (main config files, package.json, etc.)
+- ALL_CODE_app.txt (Next.js app directory)
+- ALL_CODE_components.txt (React components)
+- ALL_CODE_ui.txt (UI component library)
+- ALL_CODE_lib_hooks.txt (utilities and hooks)
+- ALL_CODE_public.txt (static assets)
+- ALL_CODE_styles.txt (CSS files)
+
+RECONSTRUCTION STEPS:
+
+1. CREATE PROJECT STRUCTURE:
+   - Create new Next.js project: npx create-next-app@latest tennis-tracker --typescript --tailwind --eslint --app
+   - Delete default files and replace with provided code
+
+2. INSTALL DEPENDENCIES:
+   - Run: npm install
+   - Install additional packages from package.json if needed
+   - NO Supabase packages should be installed
+
+3. FILE PLACEMENT:
+   - Extract each file from the text bundles and place in correct directories
+   - Maintain exact folder structure as shown in file paths
+   - Preserve all file extensions (.tsx, .ts, .css, .json, etc.)
+
+4. KEY MODIFICATIONS TO ENSURE:
+   - Remove ALL Google/Supabase authentication code
+   - Replace with localStorage-based guest mode
+   - Remove cloud sync functionality
+   - Keep all UI components and styling identical
+   - Ensure app works offline with local data only
+
+5. VERIFICATION:
+   - Run: npm run dev
+   - App should start without errors
+   - All pages should load correctly
+   - Styling should match original exactly
+   - Data should persist in localStorage (no external dependencies)
+
+6. FINAL CHECKLIST:
+   ✓ No Google sign-in buttons or flows
+   ✓ No Supabase imports or calls
+   ✓ All data stored in localStorage
+   ✓ App works completely offline
+   ✓ UI looks identical to original
+   ✓ All functionality preserved (except cloud sync)
+
+IMPORTANT NOTES:
+- This is a tennis tracking app for managing students, groups, and attendance
+- Uses React, Next.js, TypeScript, and Tailwind CSS
+- Has PWA capabilities for mobile use
+- All data is stored locally in browser storage
+- No external authentication or cloud services required
+
+If you encounter any issues, prioritize maintaining the exact UI and functionality while ensuring it works as a local-only application.
+
+Start by reading ALL_CODE_root.txt first, then proceed with the other files in order.
