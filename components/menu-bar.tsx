@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
@@ -112,10 +112,10 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   if (isMobile) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black/20 backdrop-blur-sm">
-        <div className="flex items-center justify-center p-2 sm:p-4">
+        <div className="flex items-center justify-center">
           <motion.div 
             ref={containerRef}
-            className="flex items-center gap-1 sm:gap-2 glass-card py-2 px-2 sm:px-4 rounded-full shadow-xl border border-white/20 w-full max-w-md backdrop-blur-md"
+            className="flex items-center gap-1 sm:gap-2 glass-card shadow-xl border border-white/20 w-full backdrop-blur-md"
             drag="x"
             dragConstraints={{ left: -100, right: 100 }}
             dragElastic={0.2}
