@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -227,8 +227,8 @@ const mergeProfiles = (localProfiles: CoachProfile[], cloudProfiles: CoachProfil
 
 export default function TennisTracker() {
   // Debug log to verify the latest changes are loaded
-  console.log("🎾 Tennis Tracker - VERSION 3.0 - REVERTED TO ORIGINAL");
-  console.log("🎾 Build timestamp:", new Date().toISOString());
+  console.log("?? Tennis Tracker - VERSION 3.0 - REVERTED TO ORIGINAL");
+  console.log("?? Build timestamp:", new Date().toISOString());
   const { toast } = useToast()
   const { signInAsGuest } = useAuth() // Only keep signInAsGuest for auto-starting returning users
   // Cloud sync removed - using local storage only
@@ -329,12 +329,12 @@ export default function TennisTracker() {
         if (loadedProfiles.length > 0) {
           setProfiles(loadedProfiles)
           setCurrentProfileId(loadedProfiles[0].id)
-          console.log("✅ Data loaded from local storage:", loadedProfiles.length, "profiles")
+          console.log("? Data loaded from local storage:", loadedProfiles.length, "profiles")
         } else {
-          console.log("📄 No data found in local storage")
+          console.log("?? No data found in local storage")
         }
       } catch (error) {
-        console.error("❌ Error loading data from local storage:", error)
+        console.error("? Error loading data from local storage:", error)
         setProfiles([])
       }
     }
@@ -444,9 +444,9 @@ export default function TennisTracker() {
     try {
       localStorage.setItem("tennisTrackerProfiles", JSON.stringify(updatedProfiles))
       localStorage.setItem("tennisTrackerCurrentProfile", updatedProfile.id)
-      console.log("✅ Data saved to localStorage IMMEDIATELY")
+      console.log("? Data saved to localStorage IMMEDIATELY")
     } catch (error) {
-      console.error("❌ CRITICAL ERROR saving to localStorage:", error)
+      console.error("? CRITICAL ERROR saving to localStorage:", error)
     }
     
     // Cloud sync removed - using local storage only
@@ -495,7 +495,7 @@ export default function TennisTracker() {
     
     const loadData = async () => {
       // ALWAYS load from localStorage FIRST - this is the primary source
-      console.log("📂 Loading data from localStorage FIRST...")
+      console.log("?? Loading data from localStorage FIRST...")
       const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
       const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
 
@@ -516,10 +516,10 @@ export default function TennisTracker() {
             if (savedCurrentProfile) {
               setCurrentProfileId(savedCurrentProfile)
             }
-            console.log("✅ Data loaded from localStorage - UI should show data immediately")
+            console.log("? Data loaded from localStorage - UI should show data immediately")
           }
         } catch (error: any) {
-          console.error("❌ Error parsing localStorage data:", error)
+          console.error("? Error parsing localStorage data:", error)
         }
       }
       
@@ -527,7 +527,7 @@ export default function TennisTracker() {
       /* Cloud sync section disabled - all references commented out
       if (false) {
         // Load from cloud when signed in
-        console.log("🔄 Loading data from cloud for user:", user.id, user.email)
+        console.log("?? Loading data from cloud for user:", user.id, user.email)
         try {
           // const cloudProfiles = await loadFromCloud() // Disabled - cloud sync removed
           if (!isMounted) return
@@ -552,7 +552,7 @@ export default function TennisTracker() {
           }
           const finalCloudProfiles = Array.from(byName.values()) as any[]
           
-          // ✅ FIXED: MERGE cloud data with existing local data instead of replacing
+          // ? FIXED: MERGE cloud data with existing local data instead of replacing
           const currentLocalProfiles = profiles.length > 0 ? profiles : []
           const mergedProfiles = mergeProfiles(currentLocalProfiles, finalCloudProfiles)
           
@@ -565,10 +565,10 @@ export default function TennisTracker() {
           // Update localStorage with merged data as backup
           localStorage.setItem("tennisTrackerProfiles", JSON.stringify(mergedProfiles))
           
-          console.log("✅ Data loaded from cloud and merged with local data")
+          console.log("? Data loaded from cloud and merged with local data")
           hasLoadedFromCloudThisSession.current = true
         } else {
-          console.log("📄 Cloud returned empty profiles, checking for migration...")
+          console.log("?? Cloud returned empty profiles, checking for migration...")
           // First-time sign-in migration: if cloud is empty, import guest/local data ONCE
           try {
             const migrationFlagKey = `tennisTrackerMigratedToUser_${user.id}`
@@ -607,20 +607,20 @@ export default function TennisTracker() {
               const finalProfiles = Array.from(byName.values()) as any[]
 
               if (finalProfiles.length > 0) {
-                console.log("🛟 Migrating guest data to cloud for this user", { count: finalProfiles.length })
+                console.log("?? Migrating guest data to cloud for this user", { count: finalProfiles.length })
                 setProfiles(finalProfiles as any)
                 setCurrentProfileId(savedCurrentProfile || finalProfiles[0].id)
                 hasLoadedFromCloudThisSession.current = true
                 // Local storage only (cloud sync removed)
                 localStorage.setItem(migrationFlagKey, 'true')
-                console.log("✅ Guest data migration complete")
+                console.log("? Guest data migration complete")
               } else {
-                console.log("📄 No guest data to migrate. Starting fresh for this user.")
+                console.log("?? No guest data to migrate. Starting fresh for this user.")
                 setProfiles([])
                 hasLoadedFromCloudThisSession.current = true
               }
             } else {
-              console.log("📄 Cloud empty and no eligible guest data to migrate (or already migrated). Checking localStorage...")
+              console.log("?? Cloud empty and no eligible guest data to migrate (or already migrated). Checking localStorage...")
               // Check localStorage as fallback even when cloud is empty
               const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
               const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
@@ -640,25 +640,25 @@ export default function TennisTracker() {
                   if (savedCurrentProfile) {
                     setCurrentProfileId(savedCurrentProfile)
                   }
-                  console.log("✅ Loaded data from localStorage fallback")
+                  console.log("? Loaded data from localStorage fallback")
                 } catch (parseError) {
-                  console.error("❌ Error parsing localStorage fallback data:", parseError)
+                  console.error("? Error parsing localStorage fallback data:", parseError)
                   setProfiles([])
                 }
               } else {
-                console.log("📄 No data found anywhere. Starting fresh.")
+                console.log("?? No data found anywhere. Starting fresh.")
                 setProfiles([])
               }
               hasLoadedFromCloudThisSession.current = true
             }
                   } catch (e: any) {
-          console.error("❌ Error during first-time migration:", e)
+          console.error("? Error during first-time migration:", e)
           setProfiles([])
           hasLoadedFromCloudThisSession.current = true
         }
         }
         } catch (error: any) {
-          console.error("❌ Error loading from cloud:", error)
+          console.error("? Error loading from cloud:", error)
           // If cloud loading fails, fall back to localStorage
           const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
           if (savedProfiles) {
@@ -677,9 +677,9 @@ export default function TennisTracker() {
               if (savedCurrentProfile) {
                 setCurrentProfileId(savedCurrentProfile)
               }
-              console.log("🔄 Fallback to localStorage due to cloud loading error")
+              console.log("?? Fallback to localStorage due to cloud loading error")
             } catch (parseError) {
-              console.error("❌ Error parsing localStorage data:", parseError)
+              console.error("? Error parsing localStorage data:", parseError)
               setProfiles([])
             }
           } else {
@@ -692,14 +692,14 @@ export default function TennisTracker() {
       // Cloud sync section disabled - using local storage only
       {
         // Local storage only
-        console.log("📂 Loading data from localStorage...", { 
+        console.log("?? Loading data from localStorage...", { 
           user: false,
           isSupabaseConfigured: false
         })
         const savedProfiles = localStorage.getItem("tennisTrackerProfiles")
         const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
 
-        console.log("📂 Found saved data:", { 
+        console.log("?? Found saved data:", { 
           hasProfiles: !!savedProfiles, 
           hasCurrentProfile: !!savedCurrentProfile,
           profilesLength: savedProfiles ? JSON.parse(savedProfiles).length : 0,
@@ -738,7 +738,7 @@ export default function TennisTracker() {
             }
             const finalProfiles = Array.from(byName.values()) as any[]
 
-            console.log("✅ Loaded profiles from localStorage:", finalProfiles.length)
+            console.log("? Loaded profiles from localStorage:", finalProfiles.length)
             if (isMounted) {
               setProfiles(finalProfiles as any)
             }
@@ -749,11 +749,11 @@ export default function TennisTracker() {
             }
           }
         } else {
-          console.log("📂 No saved profiles found in localStorage")
+          console.log("?? No saved profiles found in localStorage")
         }
 
         if (savedCurrentProfile && isMounted) {
-          console.log("✅ Loaded current profile ID from localStorage:", savedCurrentProfile)
+          console.log("? Loaded current profile ID from localStorage:", savedCurrentProfile)
           setCurrentProfileId(savedCurrentProfile)
         }
       }
@@ -778,7 +778,7 @@ export default function TennisTracker() {
   // Auto-show create profile dialog when no profiles exist
   useEffect(() => {
     if (hasLoadedData.current && profiles.length === 0 && !showCreateProfile) {
-      console.log("📝 No profiles found - showing create profile dialog")
+      console.log("?? No profiles found - showing create profile dialog")
       setShowCreateProfile(true)
     }
   }, [hasLoadedData.current, profiles.length, showCreateProfile])
@@ -846,14 +846,14 @@ export default function TennisTracker() {
 
   const createProfile = () => {
     if (!newProfileName.trim()) {
-      toast("❌ Name required", "error")
+      toast("? Name required", "error")
       return
     }
 
     // Check if a profile with this name already exists
     const existingProfile = profiles.find(p => p.name.toLowerCase() === newProfileName.trim().toLowerCase())
     if (existingProfile) {
-      toast(`❌ A profile named "${newProfileName.trim()}" already exists`, "error")
+      toast(`? A profile named "${newProfileName.trim()}" already exists`, "error")
       return
     }
 
@@ -875,7 +875,7 @@ export default function TennisTracker() {
     setShowCreateProfile(false)
     setActiveTab("students") // Start on students tab after creating profile
 
-    toast(`✅ Welcome, ${newProfile.name}!`, "success")
+    toast(`? Welcome, ${newProfile.name}!`, "success")
   }
 
   const editProfile = () => {
@@ -888,12 +888,12 @@ export default function TennisTracker() {
     setEditProfileName("")
     setShowEditProfile(false)
 
-    toast(`✏️ Profile updated to "${editProfileName.trim()}"`, "success")
+    toast(`?? Profile updated to "${editProfileName.trim()}"`, "success")
   }
 
   const deleteProfile = () => {
     if (profiles.length <= 1) {
-      toast("❌ Cannot delete the last profile", "error")
+      toast("? Cannot delete the last profile", "error")
       return
     }
 
@@ -901,7 +901,7 @@ export default function TennisTracker() {
     setProfiles(updatedProfiles)
     setCurrentProfileId(updatedProfiles[0].id)
 
-    toast("🗑️ Profile deleted successfully", "success")
+    toast("??? Profile deleted successfully", "success")
   }
 
 
@@ -983,7 +983,7 @@ export default function TennisTracker() {
     const presentCount = newAttendanceRecords.filter((r) => r.status === "present").length
     const absentCount = newAttendanceRecords.filter((r) => r.status === "absent").length
 
-    toast(`✅ Attendance saved: ${presentCount} present, ${absentCount} absent`, "success")
+    toast(`? Attendance saved: ${presentCount} present, ${absentCount} absent`, "success")
 
     // Navigate to reports tab after saving and show sessions (not terms)
     setActiveTab("reports")
@@ -1053,7 +1053,7 @@ export default function TennisTracker() {
     setTimeAdjustmentReason("")
     setSessionCancelled(true)
 
-    toast(`❌ Session cancelled for ${group.name} - Make-up sessions created`, "error")
+    toast(`? Session cancelled for ${group.name} - Make-up sessions created`, "error")
 
     // Navigate to make-up tab after cancelling
     setActiveTab("makeup")
@@ -1083,7 +1083,7 @@ export default function TennisTracker() {
     }
 
     updateProfile(updatedProfile)
-    toast(`🗑️ Make-up session deleted for ${student.name}`, "success")
+    toast(`??? Make-up session deleted for ${student.name}`, "success")
   }
 
   const deleteCompletedMakeup = (makeupId: string) => {
@@ -1106,13 +1106,13 @@ export default function TennisTracker() {
     }
 
     updateProfile(updatedProfile)
-    toast(`🗑️ Completed make-up session deleted for ${student.name}`, "success")
+    toast(`??? Completed make-up session deleted for ${student.name}`, "success")
   }
 
   // Smart Sorter functionality
   const handleSmartSorterPreview = () => {
     if (!smartSorterGroupName.trim() || !smartSorterStudentList.trim()) {
-      toast("❌ Please enter both group name and student list", "error")
+      toast("? Please enter both group name and student list", "error")
       return
     }
 
@@ -1122,7 +1122,7 @@ export default function TennisTracker() {
       .filter((name) => name.length > 0)
 
     if (studentNames.length === 0) {
-      toast("❌ No valid student names found", "error")
+      toast("? No valid student names found", "error")
       return
     }
 
@@ -1186,7 +1186,7 @@ export default function TennisTracker() {
     setSmartSorterUsualTime({ hour: "9", minute: "00", period: "AM" })
     setSmartSorterDuration("1h")
     setSmartSorterPreview(null)
-    toast(`✅ Added ${smartSorterPreview.students.length} students to ${smartSorterPreview.group.name}`, "success")
+    toast(`? Added ${smartSorterPreview.students.length} students to ${smartSorterPreview.group.name}`, "success")
     // Switch to students tab after successful confirmation
     setActiveTab("students")
   }
@@ -1198,7 +1198,7 @@ export default function TennisTracker() {
   // Smart Attendance functionality
   const handleSmartAttendanceParse = () => {
     if (!smartAttendanceGroupId || !smartAttendancePresentStudents.trim()) {
-      toast("❌ Please select a group and enter present students", "error")
+      toast("? Please select a group and enter present students", "error")
       return
     }
 
@@ -1287,7 +1287,7 @@ export default function TennisTracker() {
     const presentCount = newAttendanceRecords.filter((r) => r.status === "present").length
     const absentCount = newAttendanceRecords.filter((r) => r.status === "absent").length
 
-    toast(`✅ Attendance recorded: ${presentCount} present, ${absentCount} absent`, "success")
+    toast(`? Attendance recorded: ${presentCount} present, ${absentCount} absent`, "success")
   }
 
   // Filter and sort students for search - Memoized for performance
@@ -1351,7 +1351,7 @@ export default function TennisTracker() {
       groups: updatedGroups,
     })
 
-    toast(`✅ ${student.name} has been removed`, "success")
+    toast(`? ${student.name} has been removed`, "success")
   }
 
   // Reports data
@@ -1387,7 +1387,7 @@ export default function TennisTracker() {
   // Export report
   const exportReport = () => {
     if (!monthlyData || !currentProfile) {
-      toast("❌ No data to export", "error")
+      toast("? No data to export", "error")
       return
     }
 
@@ -1419,7 +1419,7 @@ export default function TennisTracker() {
     link.click()
     document.body.removeChild(link)
 
-    toast("✅ Report exported successfully", "success")
+    toast("? Report exported successfully", "success")
   }
 
   // Set edit profile name when current profile changes
@@ -1498,7 +1498,7 @@ export default function TennisTracker() {
     }
 
     updateProfile(updatedProfile)
-    toast(`✅ Make-up session completed for ${student.name}`, "success")
+    toast(`? Make-up session completed for ${student.name}`, "success")
   }
 
   const exportSessionData = (session: any) => {
@@ -1538,7 +1538,7 @@ export default function TennisTracker() {
     link.click()
     document.body.removeChild(link)
 
-    toast("✅ Session data exported successfully", "success")
+    toast("? Session data exported successfully", "success")
   }
 
   const exportArchivedTerm = (term: any) => {
@@ -1573,7 +1573,7 @@ export default function TennisTracker() {
     link.click()
     document.body.removeChild(link)
 
-    toast("✅ Archived term data exported successfully", "success")
+    toast("? Archived term data exported successfully", "success")
   }
 
   const deleteArchivedTerm = (termId: string) => {
@@ -1585,7 +1585,7 @@ export default function TennisTracker() {
     }
 
     updateProfile(updatedProfile)
-    toast("🗑️ Archived term deleted", "success")
+    toast("??? Archived term deleted", "success")
   }
 
   const getStudentAttendanceHistory = useCallback((studentId: string) => {
@@ -1676,7 +1676,7 @@ export default function TennisTracker() {
     }
 
     updateProfile(updatedProfile)
-    toast(`✅ Term "${termName}" finalized and archived`, "success")
+    toast(`? Term "${termName}" finalized and archived`, "success")
   }
 
   const exportStudentData = (student: Student) => {
@@ -1714,7 +1714,7 @@ export default function TennisTracker() {
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
 
-    toast(`📊 Exported data for ${student.name}`, "success")
+    toast(`?? Exported data for ${student.name}`, "success")
   }
 
   const completeMakeupSession = (makeupId: string) => {
@@ -1750,7 +1750,7 @@ export default function TennisTracker() {
     }
 
     updateProfile(updatedProfile)
-    toast(`✅ Make-up session completed for ${student.name}`, "success")
+    toast(`? Make-up session completed for ${student.name}`, "success")
   }
 
   // Show welcome page for first-time users (no existing data)
@@ -1765,7 +1765,7 @@ export default function TennisTracker() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             >
-              <span className="text-2xl">🎾</span>
+              <span className="text-2xl">??</span>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -1825,7 +1825,7 @@ export default function TennisTracker() {
               </Button>
             )}
             <p className="text-xs text-tertiary-white text-center">
-              💾 Data stored locally on this device
+              ?? Data stored locally on this device
             </p>
             <p className="text-xs text-tertiary-white text-center">
               Made by Santiago Gonzalez
@@ -1839,7 +1839,7 @@ export default function TennisTracker() {
   // Auto-start for returning users (no loading screen needed)
 
   return (
-    <div className="min-h-screen pb-24 sm:pb-40 animate-fade-in-up">
+    <div className="min-h-screen animate-fade-in-up">
       {/* Error Banner */}
       {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') && (
         <div className="p-2 sm:p-4">
@@ -1886,7 +1886,7 @@ export default function TennisTracker() {
                     Current Coach: {currentProfile.name || "None Selected"}
                   </h1>
                   <p className="text-secondary-white text-sm sm:text-base">
-                    {currentProfile.students.length} Students • {currentProfile.groups.length} Groups
+                    {currentProfile.students.length} Students � {currentProfile.groups.length} Groups
                   </p>
                 </div>
                 <Sheet open={showSettings} onOpenChange={setShowSettings}>
@@ -1957,9 +1957,9 @@ export default function TennisTracker() {
                                       const updatedProfiles = profiles.filter((p) => p.id !== currentProfileId)
                                       setProfiles(updatedProfiles)
                                       setCurrentProfileId(updatedProfiles[0].id)
-                                      toast("🗑️ Profile deleted successfully", "success")
+                                      toast("??? Profile deleted successfully", "success")
                                     } else {
-                                      toast("❌ Cannot delete the last profile", "error")
+                                      toast("? Cannot delete the last profile", "error")
                                     }
                                   }}
                                   size="sm"
@@ -1999,7 +1999,7 @@ export default function TennisTracker() {
                           <div className="space-y-3">
                             <h3 className="text-primary-white font-semibold text-lg">App Info</h3>
                             <div className="glass-card p-4 space-y-2">
-                              <p className="text-secondary-white text-sm">Created by Santiago González</p>
+                              <p className="text-secondary-white text-sm">Created by Santiago Gonz�lez</p>
                               <p className="text-secondary-white text-sm">Version 1.0.0</p>
                               <p className="text-secondary-white text-sm font-medium">Tennis Attendance Tracker</p>
                               <p className="text-secondary-white text-xs leading-relaxed">
@@ -2018,7 +2018,7 @@ export default function TennisTracker() {
                               <div className="flex items-start gap-3 mb-4">
                                 <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
                                 <div>
-                                  <p className="text-red-300 font-medium text-sm">⚠️ Danger Zone</p>
+                                  <p className="text-red-300 font-medium text-sm">?? Danger Zone</p>
                                   <p className="text-secondary-white text-xs mt-1">
                                     This action will permanently delete ALL your data and cannot be undone.
                                   </p>
@@ -2045,16 +2045,16 @@ export default function TennisTracker() {
                                       </AlertDialogTitle>
                                     </div>
                                     <AlertDialogDescription className="text-secondary-white space-y-3">
-                                      <p className="font-medium text-red-300">⚠️ This action cannot be undone!</p>
+                                      <p className="font-medium text-red-300">?? This action cannot be undone!</p>
                                       <div className="glass-card p-3 bg-red-500/5 border border-red-500/20">
                                         <p className="text-sm font-medium text-red-300 mb-2">The following will be permanently deleted:</p>
                                         <ul className="text-xs text-secondary-white space-y-1">
-                                          <li>• All coach profiles ({profiles.length} profile{profiles.length !== 1 ? 's' : ''})</li>
-                                          <li>• All students ({profiles.reduce((sum, profile) => sum + (profile.students?.length || 0), 0)} students)</li>
-                                          <li>• All groups ({profiles.reduce((sum, profile) => sum + (profile.groups?.length || 0), 0)} groups)</li>
-                                          <li>• All attendance records</li>
-                                          <li>• All makeup sessions</li>
-                                          <li>• All app settings and preferences</li>
+                                          <li>� All coach profiles ({profiles.length} profile{profiles.length !== 1 ? 's' : ''})</li>
+                                          <li>� All students ({profiles.reduce((sum, profile) => sum + (profile.students?.length || 0), 0)} students)</li>
+                                          <li>� All groups ({profiles.reduce((sum, profile) => sum + (profile.groups?.length || 0), 0)} groups)</li>
+                                          <li>� All attendance records</li>
+                                          <li>� All makeup sessions</li>
+                                          <li>� All app settings and preferences</li>
                                         </ul>
                                       </div>
                                       <p className="text-sm">
@@ -2072,7 +2072,7 @@ export default function TennisTracker() {
                                         setCurrentProfileId("")
                                         deleteLocal()
                                         setShowSettings(false)
-                                        toast("🗑️ All data cleared successfully", "success")
+                                        toast("??? All data cleared successfully", "success")
                                       }}
                                       className="glass-button bg-red-600/20 hover:bg-red-600/30 text-red-300 border-red-500/30 hover:border-red-500/50 w-full sm:w-auto"
                                     >
@@ -2821,7 +2821,7 @@ export default function TennisTracker() {
                                             >
                                               <span className="text-primary-white">{student.name}</span>
                                               <div className="text-xs text-secondary-white">
-                                                Prepaid: {student.prepaidSessions} • Remaining: {student.remainingSessions} • Make-ups: {student.makeupSessions}
+                                                Prepaid: {student.prepaidSessions} � Remaining: {student.remainingSessions} � Make-ups: {student.makeupSessions}
                                                 {student.sessionHistory && student.sessionHistory.length > 0 && (
                                                   <div className="mt-1 text-xs text-tertiary-white">
                                                     Last session: {student.sessionHistory[student.sessionHistory.length - 1].date} ({student.sessionHistory[student.sessionHistory.length - 1].type})
@@ -3114,10 +3114,10 @@ export default function TennisTracker() {
                                 </div>
                                 <div className="flex flex-col gap-1">
                                   <p className="text-sm text-secondary-white">
-                                    Prepaid: {student.prepaidSessions} • Remaining: {student.remainingSessions} • Make-ups: {student.makeupSessions}
+                                    Prepaid: {student.prepaidSessions} � Remaining: {student.remainingSessions} � Make-ups: {student.makeupSessions}
                                     {student.sessionHistory && student.sessionHistory.length > 0 && (
                                       <span className="ml-2 text-xs text-tertiary-white">
-                                        • Last: {student.sessionHistory[student.sessionHistory.length - 1].date}
+                                        � Last: {student.sessionHistory[student.sessionHistory.length - 1].date}
                                       </span>
                                     )}
                                   </p>
@@ -3277,7 +3277,7 @@ export default function TennisTracker() {
                                 </h3>
                                 <p className="text-sm text-secondary-white">{group?.name || "Unknown Group"}</p>
                                 <p className="text-sm text-green-400 font-medium">
-                                  ✅ Completed: {makeup.completedDate && !isNaN(new Date(makeup.completedDate).getTime())
+                                  ? Completed: {makeup.completedDate && !isNaN(new Date(makeup.completedDate).getTime())
                                     ? format(new Date(makeup.completedDate), "MMM dd, yyyy 'at' h:mm a")
                                     : "Invalid Date"}
                                 </p>
@@ -3450,7 +3450,7 @@ export default function TennisTracker() {
                                           ...currentProfile,
                                           attendanceRecords: updatedAttendanceRecords,
                                         })
-                                        toast("🗑️ Session deleted successfully", "success")
+                                        toast("??? Session deleted successfully", "success")
                                       }}
                                       size="sm"
                                       className="glass-delete-button"
@@ -3539,7 +3539,7 @@ export default function TennisTracker() {
                                     {term.startMonth} - {term.endMonth} {term.year}
                                   </p>
                                   <div className="text-xs text-tertiary-white mt-1">
-                                    {term.attendanceRecords.length} sessions • {term.studentSnapshot.length} students
+                                    {term.attendanceRecords.length} sessions � {term.studentSnapshot.length} students
                                   </div>
                                   <p className="text-xs text-tertiary-white">
                                     Finalized: {term.finalizedDate && !isNaN(new Date(term.finalizedDate).getTime())
