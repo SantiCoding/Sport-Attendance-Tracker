@@ -109,115 +109,111 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   }
 
   // Use enhanced mobile navigation for mobile devices
+  // Use enhanced mobile navigation for mobile devices
   if (isMobile) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black/20 backdrop-blur-sm">
-        <div className="flex items-center justify-center">
-          <motion.div 
-            ref={containerRef}
-            className="fixed bottom-0 left-0 right-0 z-[100] flex items-center gap-2 sm:gap-4 w-full h-16 bg-black/20 backdrop-blur-sm"
-            drag="x"
-            dragConstraints={{ left: -100, right: 100 }}
-            dragElastic={0.2}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onPanEnd={handleSwipe}
-            dragMomentum={false}
-            whileDrag={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            {menuItems.map((item) => {
-              const isActive = activeTab === item.href
+      <motion.div 
+        ref={containerRef}
+        className="fixed bottom-0 left-0 right-0 z-[100] flex items-center gap-2 sm:gap-4 w-full h-16 bg-black/20 backdrop-blur-sm"
+        drag="x"
+        dragConstraints={{ left: -100, right: 100 }}
+        dragElastic={0.2}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onPanEnd={handleSwipe}
+        dragMomentum={false}
+        whileDrag={{ scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        {menuItems.map((item) => {
+          const isActive = activeTab === item.href
 
-              return (
-                <motion.div
-                  key={item.href}
-                  className={cn(
-                    "relative cursor-pointer text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full transition-all duration-300 flex-1",
-                    "text-white/80 hover:text-white",
-                    isActive && "text-white",
-                    isDragging && "pointer-events-none"
-                  )}
-                  onClick={() => !isDragging && setActiveTab(item.href)}
-                  whileTap={{ scale: isDragging ? 1 : 0.95 }}
+          return (
+            <motion.div
+              key={item.href}
+              className={cn(
+                "relative cursor-pointer text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 transition-all duration-300 flex-1",
+                "text-white/80 hover:text-white",
+                isActive && "text-white",
+                isDragging && "pointer-events-none"
+              )}
+              onClick={() => !isDragging && setActiveTab(item.href)}
+              whileTap={{ scale: isDragging ? 1 : 0.95 }}
+            >
+              <span className="flex flex-col items-center gap-1">
+                <motion.span 
+                  className="text-sm sm:text-base"
+                  animate={{
+                    scale: isActive ? 1.05 : 1,
+                    y: isActive ? -1 : 0,
+                  }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 300, 
+                    damping: 25,
+                    duration: 0.2
+                  }}
                 >
-                  <span className="flex flex-col items-center gap-1">
-                    <motion.span 
-                      className="text-sm sm:text-base"
-                      animate={{
-                        scale: isActive ? 1.05 : 1,
-                        y: isActive ? -1 : 0,
-                      }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 300, 
-                        damping: 25,
-                        duration: 0.2
-                      }}
-                    >
-                      {item.icon}
-                    </motion.span>
-                    <motion.span 
-                      className="text-[8px] sm:text-[10px] leading-tight"
-                      animate={{
-                        scale: isActive ? 1.02 : 1,
-                        y: isActive ? -1 : 0,
-                      }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 300, 
-                        damping: 25,
-                        duration: 0.2
-                      }}
-                    >
-                      {item.label}
-                    </motion.span>
-                  </span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="lamp"
-                      className="absolute inset-0 w-full rounded-full -z-10"
-                      style={{
-                        background: `linear-gradient(135deg, ${item.color}20, ${item.color}10)`,
-                        backdropFilter: 'blur(10px)',
-                      }}
-                      initial={false}
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 30,
-                      }}
-                    >
-                      {/* Top indicator that matches the tab color */}
-                      <div 
-                        className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      >
-                        {/* Multiple glow layers for enhanced effect */}
-                        <div 
-                          className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2"
-                          style={{ backgroundColor: `${item.color}20` }}
-                        />
-                        <div 
-                          className="absolute w-8 h-6 rounded-full blur-md -top-1"
-                          style={{ backgroundColor: `${item.color}20` }}
-                        />
-                        <div 
-                          className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2"
-                          style={{ backgroundColor: `${item.color}20` }}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
+                  {item.icon}
+                </motion.span>
+                <motion.span 
+                  className="text-[8px] sm:text-[10px] leading-tight"
+                  animate={{
+                    scale: isActive ? 1.02 : 1,
+                    y: isActive ? -1 : 0,
+                  }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 300, 
+                    damping: 25,
+                    duration: 0.2
+                  }}
+                >
+                  {item.label}
+                </motion.span>
+              </span>
+              {isActive && (
+                <motion.div
+                  layoutId="lamp"
+                  className="absolute inset-0 w-full -z-10"
+                  style={{
+                    background: `linear-gradient(135deg, ${item.color}20, ${item.color}10)`,
+                    backdropFilter: 'blur(10px)',
+                  }}
+                  initial={false}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                >
+                  {/* Top indicator that matches the tab color */}
+                  <div 
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1"
+                    style={{ backgroundColor: item.color }}
+                  >
+                    {/* Multiple glow layers for enhanced effect */}
+                    <div 
+                      className="absolute w-12 h-6 blur-md -top-2 -left-2"
+                      style={{ backgroundColor: `${item.color}20` }}
+                    />
+                    <div 
+                      className="absolute w-8 h-6 blur-md -top-1"
+                      style={{ backgroundColor: `${item.color}20` }}
+                    />
+                    <div 
+                      className="absolute w-4 h-4 blur-sm top-0 left-2"
+                      style={{ backgroundColor: `${item.color}20` }}
+                    />
+                  </div>
                 </motion.div>
-              )
-            })}
-          </motion.div>
-        </div>
-      </div>
+              )}
+            </motion.div>
+          )
+        })}
+      </motion.div>
     )
   }
-
   // Desktop navigation (original enhanced version)
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] liquid-glass border-t border-white/20 shadow-lg transition-colors duration-300">
