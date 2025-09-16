@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
@@ -115,7 +115,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
         <div className="flex items-center justify-center">
           <motion.div 
             ref={containerRef}
-            className="flex items-center gap-2 sm:gap-4 glass-card shadow-xl border border-white/20 w-full backdrop-blur-md"
+            className="fixed bottom-0 left-0 right-0 z-[100] flex items-center gap-2 sm:gap-4 w-full h-16 bg-black/20 backdrop-blur-sm"
             drag="x"
             dragConstraints={{ left: -100, right: 100 }}
             dragElastic={0.2}
@@ -133,7 +133,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                 <motion.div
                   key={item.href}
                   className={cn(
-                    "relative cursor-pointer text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-full transition-all duration-300 flex-1",
+                    "relative cursor-pointer text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full transition-all duration-300 flex-1",
                     "text-white/80 hover:text-white",
                     isActive && "text-white",
                     isDragging && "pointer-events-none"
