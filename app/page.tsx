@@ -1839,7 +1839,7 @@ export default function TennisTracker() {
   // Auto-start for returning users (no loading screen needed)
 
   return (
-    <div className="min-h-screen animate-fade-in-up">
+    <div className="min-h-screen">
       {/* Error Banner */}
       {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') && (
         <div className="p-2 sm:p-4">
@@ -3689,3 +3689,4 @@ export default function TennisTracker() {
     </div>
   )
 }
+
