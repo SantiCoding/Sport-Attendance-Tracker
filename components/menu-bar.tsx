@@ -111,7 +111,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   // Use enhanced mobile navigation for mobile devices
   if (isMobile) {
     return (
-      <div className="mobile-nav-fixed bg-black/20 backdrop-blur-sm">
+      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black/20 backdrop-blur-sm">
         <div className="flex items-center justify-center p-2 sm:p-4">
           <motion.div 
             ref={containerRef}
@@ -220,7 +220,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
 
   // Desktop navigation (original enhanced version)
   return (
-    <div className="mobile-nav-fixed liquid-glass border-t border-white/20 shadow-lg transition-colors duration-300 pb-2">
+    <div className="fixed bottom-0 left-0 right-0 z-[100] liquid-glass border-t border-white/20 shadow-lg transition-colors duration-300">
       <div className="grid w-full grid-cols-5 h-16 rounded-none relative z-10">
         {menuItems.map((item) => (
           <motion.div
