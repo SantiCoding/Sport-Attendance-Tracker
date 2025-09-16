@@ -111,7 +111,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   // Use enhanced mobile navigation for mobile devices
   if (isMobile) {
     return (
-      <div className="sticky bottom-0 left-0 right-0 z-[100] bg-black/20 backdrop-blur-sm">
+      <div className="nav-viewport-fixed bg-black/20 backdrop-blur-sm">
         <div className="flex items-center justify-center">
           <motion.div 
             ref={containerRef}
