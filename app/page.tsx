@@ -514,7 +514,14 @@ export default function TennisTracker() {
           if (isMounted) {
             setProfiles(parsedProfiles as any)
             if (savedCurrentProfile) {
-              setCurrentProfileId(savedCurrentProfile)
+              // Check if the saved current profile still exists
+              const profileExists = parsedProfiles.some((p: any) => p.id === savedCurrentProfile)
+              if (profileExists) {
+                setCurrentProfileId(savedCurrentProfile)
+                console.log("✅ Restored last used profile:", savedCurrentProfile)
+              } else {
+                console.log("⚠️ Saved profile no longer exists, will auto-select first profile")
+              }
             }
             console.log("✅ Data loaded from localStorage - UI should show data immediately")
           }
@@ -675,7 +682,14 @@ export default function TennisTracker() {
               setProfiles(parsedProfiles as any)
               const savedCurrentProfile = localStorage.getItem("tennisTrackerCurrentProfile")
               if (savedCurrentProfile) {
-                setCurrentProfileId(savedCurrentProfile)
+                // Check if the saved current profile still exists
+                const profileExists = parsedProfiles.some((p: any) => p.id === savedCurrentProfile)
+                if (profileExists) {
+                  setCurrentProfileId(savedCurrentProfile)
+                  console.log("✅ Restored last used profile from fallback:", savedCurrentProfile)
+                } else {
+                  console.log("⚠️ Saved profile no longer exists in fallback, will auto-select first profile")
+                }
               }
               console.log("🔄 Fallback to localStorage due to cloud loading error")
             } catch (parseError) {
@@ -741,6 +755,16 @@ export default function TennisTracker() {
             console.log("✅ Loaded profiles from localStorage:", finalProfiles.length)
             if (isMounted) {
               setProfiles(finalProfiles as any)
+              if (savedCurrentProfile) {
+                // Check if the saved current profile still exists
+                const profileExists = finalProfiles.some((p: any) => p.id === savedCurrentProfile)
+                if (profileExists) {
+                  setCurrentProfileId(savedCurrentProfile)
+                  console.log("✅ Restored last used profile from local storage:", savedCurrentProfile)
+                } else {
+                  console.log("⚠️ Saved profile no longer exists in local storage, will auto-select first profile")
+                }
+              }
             }
           } catch (error: any) {
             console.error("Error parsing saved profiles:", error)
@@ -834,6 +858,14 @@ export default function TennisTracker() {
       localStorage.setItem("tennisTrackerCurrentProfile", currentProfileId)
     }
   }, [currentProfileId])
+
+  // Auto-select first profile if no current profile is set
+  useEffect(() => {
+    if (profiles.length > 0 && !currentProfileId) {
+      console.log("🎯 Auto-selecting first profile:", profiles[0].name)
+      setCurrentProfileId(profiles[0].id)
+    }
+  }, [profiles, currentProfileId])
 
   // Generate a proper UUID v4
   const generateUUID = () => {
@@ -1788,8 +1820,21 @@ export default function TennisTracker() {
                     if (savedData) {
                       try {
                         const parsedData = JSON.parse(savedData)
-                        setProfiles(parsedData.profiles || [])
-                        setCurrentProfileId(parsedData.currentProfileId || "")
+                        const profiles = parsedData.profiles || []
+                        setProfiles(profiles)
+                        
+                        // Validate and set current profile ID
+                        const savedCurrentProfileId = parsedData.currentProfileId || ""
+                        if (savedCurrentProfileId) {
+                          const profileExists = profiles.some((p: any) => p.id === savedCurrentProfileId)
+                          if (profileExists) {
+                            setCurrentProfileId(savedCurrentProfileId)
+                            console.log("✅ Restored last used profile from legacy data:", savedCurrentProfileId)
+                          } else {
+                            console.log("⚠️ Saved profile no longer exists in legacy data, will auto-select first profile")
+                          }
+                        }
+                        
                         setHasInteractedWithWelcome(true)
                         toast("Previous data loaded successfully!", "success")
                       } catch (error) {
