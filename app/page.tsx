@@ -1932,23 +1932,35 @@ export default function TennisTracker() {
       {/* Header */}
       <div className="p-2 sm:p-4">
         <div className="max-w-7xl mx-auto">
-          <Card className="glass-card mb-4 sm:mb-6">
+          <Card className="glass-card mb-4 sm:mb-6 border-white/10">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-primary-white text-xl sm:text-2xl font-bold">
-                    Current Coach: {currentProfile.name || "None Selected"}
-                  </h1>
-                  <p className="text-secondary-white text-sm sm:text-base">
-                    {currentProfile.students.length} Students • {currentProfile.groups.length} Groups
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <User className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-primary-white text-lg sm:text-xl font-semibold">
+                      {currentProfile.name || "No Coach Selected"}
+                    </h1>
+                    <div className="flex items-center gap-4 text-sm text-secondary-white">
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {currentProfile.students.length} Students
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {currentProfile.groups.length} Groups
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <Sheet open={showSettings} onOpenChange={setShowSettings}>
                   <SheetTrigger asChild>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="glass-button text-primary-white"
+                      className="glass-button text-primary-white hover:bg-white/10"
                     >
                       <Settings className="h-4 w-4" />
                     </Button>
