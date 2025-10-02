@@ -64,10 +64,7 @@ interface MenuBarProps {
 }
 
 export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleResize = () => {
@@ -79,241 +76,100 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  const getCurrentTabIndex = () => {
-    return menuItems.findIndex(item => item.href === activeTab)
-  }
-
-  const handleSwipe = (event: any, info: PanInfo) => {
-    if (!isMobile) return
-
-    const threshold = 50 // Minimum distance for swipe
-    const currentIndex = getCurrentTabIndex()
-    
-    if (info.offset.x > threshold && currentIndex > 0) {
-      // Swipe right - go to previous tab
-      const newIndex = currentIndex - 1
-      setActiveTab(menuItems[newIndex].href)
-    } else if (info.offset.x < -threshold && currentIndex < menuItems.length - 1) {
-      // Swipe left - go to next tab
-      const newIndex = currentIndex + 1
-      setActiveTab(menuItems[newIndex].href)
-    }
-  }
-
-  const handleDragStart = () => {
-    setIsDragging(true)
-  }
-
-  const handleDragEnd = () => {
-    setIsDragging(false)
-  }
-
-  // Use enhanced mobile navigation for mobile devices
+  // Simplified mobile navigation for better performance
   if (isMobile) {
     return (
-      <div className="nav-viewport-fixed bg-black/20 backdrop-blur-sm">
-        <div className="flex items-center justify-center">
-          <motion.div 
-            ref={containerRef}
-            className="flex items-center gap-2 sm:gap-4 w-full h-16"
-            drag="x"
-            dragConstraints={{ left: -100, right: 100 }}
-            dragElastic={0.2}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onPanEnd={handleSwipe}
-            dragMomentum={false}
-            whileDrag={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            {menuItems.map((item) => {
-              const isActive = activeTab === item.href
+      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black/80 backdrop-blur-md border-t border-white/10">
+        <div className="grid w-full grid-cols-5 h-16">
+          {menuItems.map((item) => {
+            const isActive = activeTab === item.href
 
-              return (
-                <motion.div
-                  key={item.href}
-                  className={cn(
-                    "relative cursor-pointer text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full transition-all duration-300 flex-1",
-                    "text-white/80 hover:text-white",
-                    isActive && "text-white",
-                    isDragging && "pointer-events-none"
-                  )}
-                  onClick={() => !isDragging && setActiveTab(item.href)}
-                  whileTap={{ scale: isDragging ? 1 : 0.95 }}
-                >
-                  <span className="flex flex-col items-center gap-1">
-                    <motion.span 
-                      className="text-sm sm:text-base"
-                      animate={{
-                        scale: isActive ? 1.05 : 1,
-                        y: isActive ? -1 : 0,
-                      }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 300, 
-                        damping: 25,
-                        duration: 0.2
-                      }}
-                    >
-                      {item.icon}
-                    </motion.span>
-                    <motion.span 
-                      className="text-[8px] sm:text-[10px] leading-tight"
-                      animate={{
-                        scale: isActive ? 1.02 : 1,
-                        y: isActive ? -1 : 0,
-                      }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 300, 
-                        damping: 25,
-                        duration: 0.2
-                      }}
-                    >
-                      {item.label}
-                    </motion.span>
-                  </span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="lamp"
-                      className="absolute inset-0 w-full rounded-full -z-10"
-                      style={{
-                        background: `linear-gradient(135deg, ${item.color}20, ${item.color}10)`,
-                        backdropFilter: 'blur(10px)',
-                      }}
-                      initial={false}
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 30,
-                      }}
-                    >
-                      {/* Top indicator that matches the tab color */}
-                      <div 
-                        className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      >
-                        {/* Multiple glow layers for enhanced effect */}
-                        <div 
-                          className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2"
-                          style={{ backgroundColor: `${item.color}20` }}
-                        />
-                        <div 
-                          className="absolute w-8 h-6 rounded-full blur-md -top-1"
-                          style={{ backgroundColor: `${item.color}20` }}
-                        />
-                        <div 
-                          className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2"
-                          style={{ backgroundColor: `${item.color}20` }}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )
-            })}
-          </motion.div>
+            return (
+              <button
+                key={item.href}
+                className={cn(
+                  "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-200",
+                  "hover:bg-white/5 active:scale-95"
+                )}
+                onClick={() => setActiveTab(item.href)}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-white/10 rounded-lg"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <div className={cn(
+                  "relative z-10 transition-colors duration-200",
+                  isActive ? item.iconColor : "text-white/70"
+                )}>
+                  {item.icon}
+                </div>
+                <span className={cn(
+                  "relative z-10 text-[10px] font-medium transition-colors duration-200",
+                  isActive ? "text-white" : "text-white/70"
+                )}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <div 
+                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
     )
   }
 
-  // Desktop navigation (original enhanced version)
+  // Simplified desktop navigation for better performance
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] liquid-glass border-t border-white/20 shadow-lg transition-colors duration-300">
-      <div className="grid w-full grid-cols-5 h-16 rounded-none relative z-10">
-        {menuItems.map((item) => (
-          <motion.div
-            key={item.href}
-            className={cn(
-              "relative flex flex-col items-center justify-center gap-1 p-1 cursor-pointer",
-            )}
-            onClick={() => setActiveTab(item.href)}
-            onHoverStart={() => setHoveredItem(item.href)}
-            onHoverEnd={() => setHoveredItem(null)}
-            whileTap={{ scale: 0.95 }}
-          >
-            {activeTab === item.href && (
-              <motion.div
-                layoutId="lamp"
-                className="absolute inset-0 w-full rounded-none -z-10"
-                style={{
-                  background: `linear-gradient(135deg, ${item.color}20, ${item.color}10)`,
-                  backdropFilter: 'blur(10px)',
-                }}
-                initial={false}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 30,
-                }}
-              >
-                {/* Top indicator that matches the tab color */}
-                <div 
-                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                >
-                  {/* Multiple glow layers for enhanced effect */}
-                  <div 
-                    className="absolute w-14 h-6 rounded-full blur-md -top-2 -left-2"
-                    style={{ backgroundColor: `${item.color}20` }}
-                  />
-                  <div 
-                    className="absolute w-10 h-6 rounded-full blur-md -top-1"
-                    style={{ backgroundColor: `${item.color}20` }}
-                  />
-                  <div 
-                    className="absolute w-6 h-4 rounded-full blur-sm top-0 left-2"
-                    style={{ backgroundColor: `${item.color}20` }}
-                  />
-                </div>
-              </motion.div>
-            )}
-            {hoveredItem === item.href && (
-              <motion.div
-                className="absolute inset-0 rounded-none opacity-0"
-                style={{ background: item.gradient }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              />
-            )}
-            <motion.div
+    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black/80 backdrop-blur-md border-t border-white/10">
+      <div className="grid w-full grid-cols-5 h-16">
+        {menuItems.map((item) => {
+          const isActive = activeTab === item.href
+
+          return (
+            <button
+              key={item.href}
               className={cn(
-                "relative z-10",
-                activeTab === item.href || hoveredItem === item.href ? item.iconColor : "text-primary-white",
+                "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-200",
+                "hover:bg-white/5 active:scale-95"
               )}
-              animate={{
-                scale: activeTab === item.href ? 1.05 : 1,
-                y: activeTab === item.href ? -1 : 0,
-              }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 300, 
-                damping: 25,
-                duration: 0.2
-              }}
+              onClick={() => setActiveTab(item.href)}
             >
-              {item.icon}
-            </motion.div>
-            <motion.span
-              className={cn("relative z-10 text-xs font-medium text-primary-white")}
-              animate={{
-                scale: activeTab === item.href ? 1.02 : 1,
-                y: activeTab === item.href ? -1 : 0,
-              }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 300, 
-                damping: 25,
-                duration: 0.2
-              }}
-            >
-              {item.label}
-            </motion.span>
-          </motion.div>
-        ))}
+              {isActive && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-white/10 rounded-lg"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
+              <div className={cn(
+                "relative z-10 transition-colors duration-200",
+                isActive ? item.iconColor : "text-white/70"
+              )}>
+                {item.icon}
+              </div>
+              <span className={cn(
+                "relative z-10 text-xs font-medium transition-colors duration-200",
+                isActive ? "text-white" : "text-white/70"
+              )}>
+                {item.label}
+              </span>
+              {isActive && (
+                <div 
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+              )}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
