@@ -76,9 +76,9 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Simple, clean navigation without complex animations
+  // Simple, clean navigation with app colors and proper fixed positioning
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black/80 backdrop-blur-md border-t border-white/10">
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-black/90 backdrop-blur-lg border-t border-white/20 shadow-2xl">
       <div className="grid w-full grid-cols-5 h-16">
         {menuItems.map((item) => {
           const isActive = activeTab === item.href
@@ -87,23 +87,30 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
             <button
               key={item.href}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 p-1 transition-colors duration-200",
-                "hover:bg-white/5 active:bg-white/10"
+                "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-200",
+                "hover:bg-white/10 active:bg-white/15",
+                isActive && "bg-white/5"
               )}
               onClick={() => setActiveTab(item.href)}
             >
               <div className={cn(
                 "transition-colors duration-200",
-                isActive ? item.iconColor : "text-white/70"
+                isActive ? item.iconColor : "text-white/60"
               )}>
                 {item.icon}
               </div>
               <span className={cn(
                 "text-xs font-medium transition-colors duration-200",
-                isActive ? "text-white" : "text-white/70"
+                isActive ? "text-white" : "text-white/60"
               )}>
                 {item.label}
               </span>
+              {isActive && (
+                <div 
+                  className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+              )}
             </button>
           )
         })}
