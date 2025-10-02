@@ -19,6 +19,9 @@ export function DataManagement({ profiles, onDataImported, onDataCleared }: Data
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
+  // Debug logging
+  console.log("DataManagement component mounted, export open:", isExportOpen, "import open:", isImportOpen)
+
   // Export all data to JSON file
   const handleExportData = () => {
     try {
@@ -93,7 +96,7 @@ export function DataManagement({ profiles, onDataImported, onDataCleared }: Data
     <>
       {/* Export Dialog */}
       <Dialog open={isExportOpen} onOpenChange={setIsExportOpen}>
-        <DialogContent className="glass-card max-w-md">
+        <DialogContent className="max-w-md z-[100] bg-black/90 border border-white/20">
           <DialogHeader>
             <DialogTitle className="text-primary-white">Export Data</DialogTitle>
             <DialogDescription className="text-secondary-white">
@@ -102,7 +105,7 @@ export function DataManagement({ profiles, onDataImported, onDataCleared }: Data
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="glass-card p-4">
+            <div className="bg-white/5 p-4 rounded-lg border border-white/10">
               <h4 className="text-primary-white font-medium mb-2">Backup Contents:</h4>
               <ul className="text-sm text-secondary-white space-y-1">
                 <li>• {profiles.length} Coach Profile{profiles.length !== 1 ? 's' : ''}</li>
@@ -134,7 +137,7 @@ export function DataManagement({ profiles, onDataImported, onDataCleared }: Data
 
       {/* Import Dialog */}
       <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-        <DialogContent className="glass-card max-w-md">
+        <DialogContent className="max-w-md z-[100] bg-black/90 border border-white/20">
           <DialogHeader>
             <DialogTitle className="text-primary-white">Import Data</DialogTitle>
             <DialogDescription className="text-secondary-white">
@@ -143,7 +146,7 @@ export function DataManagement({ profiles, onDataImported, onDataCleared }: Data
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="glass-card p-4 border-dashed border-2 border-white/20">
+            <div className="bg-white/5 p-4 border-dashed border-2 border-white/20 rounded-lg">
               <div className="text-center">
                 <Upload className="h-8 w-8 mx-auto mb-2 text-secondary-white" />
                 <p className="text-sm text-secondary-white mb-2">
@@ -190,7 +193,10 @@ export function DataManagement({ profiles, onDataImported, onDataCleared }: Data
           whileTap={{ scale: 0.98 }}
         >
           <Button 
-            onClick={() => setIsExportOpen(true)}
+            onClick={() => {
+              console.log("Export button clicked, setting isExportOpen to true")
+              setIsExportOpen(true)
+            }}
             className="glass-button text-primary-white"
             size="sm"
           >
@@ -204,7 +210,10 @@ export function DataManagement({ profiles, onDataImported, onDataCleared }: Data
           whileTap={{ scale: 0.98 }}
         >
           <Button 
-            onClick={() => setIsImportOpen(true)}
+            onClick={() => {
+              console.log("Import button clicked, setting isImportOpen to true")
+              setIsImportOpen(true)
+            }}
             className="glass-button text-primary-white"
             size="sm"
           >
