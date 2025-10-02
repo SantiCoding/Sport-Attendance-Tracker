@@ -58,7 +58,7 @@ const NeonCheckbox: React.FC<NeonCheckboxProps> = ({
           <div className="absolute inset-[2px] flex items-center justify-center neon-checkbox__check-container">
             <svg 
               viewBox="0 0 24 24" 
-              className={`w-4/5 h-4/5 fill-none stroke-[var(--primary)] stroke-[3] stroke-linecap-round stroke-linejoin-round [stroke-dasharray:40] origin-center transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] neon-checkbox__check ${
+              className={`w-4/5 h-4/5 fill-none stroke-[var(--primary)] stroke-[3] stroke-linecap-round stroke-linejoin-round [stroke-dasharray:40] origin-center transition-all duration-400 ease-&lsqb;cubic-bezier(0.16,1,0.3,1)&rsqb; neon-checkbox__check ${
                 isChecked 
                   ? '[stroke-dashoffset:0] scale-110' 
                   : '[stroke-dashoffset:40]'
