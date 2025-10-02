@@ -238,6 +238,7 @@ export default function TennisTracker() {
   const [currentProfileId, setCurrentProfileId] = useState<string>("")
   const [activeTab, setActiveTab] = useState("students")
   const [hasInteractedWithWelcome, setHasInteractedWithWelcome] = useState(false)
+  const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [hasExistingData, setHasExistingData] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedGroupId, setSelectedGroupId] = useState<string>("")
@@ -783,6 +784,7 @@ export default function TennisTracker() {
       }
       if (isMounted) {
         hasLoadedData.current = true
+        setIsDataLoaded(true)
       }
     }
 
@@ -797,15 +799,22 @@ export default function TennisTracker() {
   useEffect(() => {
     hasLoadedData.current = false
     hasLoadedFromCloudThisSession.current = false
+    setIsDataLoaded(false)
   }, [profiles.length])
 
   // Auto-show create profile dialog when no profiles exist
   useEffect(() => {
-    if (hasLoadedData.current && profiles.length === 0 && !showCreateProfile) {
+    // Only show create dialog if we've finished loading and truly have no profiles
+    if (isDataLoaded && profiles.length === 0 && !showCreateProfile) {
       console.log("📝 No profiles found - showing create profile dialog")
       setShowCreateProfile(true)
     }
-  }, [hasLoadedData.current, profiles.length, showCreateProfile])
+    // Hide create dialog if we have profiles
+    else if (isDataLoaded && profiles.length > 0 && showCreateProfile) {
+      console.log("📝 Profiles found - hiding create profile dialog")
+      setShowCreateProfile(false)
+    }
+  }, [isDataLoaded, profiles.length, showCreateProfile])
 
   // Ensure data is saved to cloud when user signs in
   // Cloud sync removed - data is saved locally only
