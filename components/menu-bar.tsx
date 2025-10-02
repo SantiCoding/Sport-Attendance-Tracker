@@ -76,57 +76,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Simplified mobile navigation for better performance
-  if (isMobile) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black/80 backdrop-blur-md border-t border-white/10">
-        <div className="grid w-full grid-cols-5 h-16">
-          {menuItems.map((item) => {
-            const isActive = activeTab === item.href
-
-            return (
-              <button
-                key={item.href}
-                className={cn(
-                  "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-200",
-                  "hover:bg-white/5 active:scale-95"
-                )}
-                onClick={() => setActiveTab(item.href)}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-white/10 rounded-lg"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <div className={cn(
-                  "relative z-10 transition-colors duration-200",
-                  isActive ? item.iconColor : "text-white/70"
-                )}>
-                  {item.icon}
-                </div>
-                <span className={cn(
-                  "relative z-10 text-[10px] font-medium transition-colors duration-200",
-                  isActive ? "text-white" : "text-white/70"
-                )}>
-                  {item.label}
-                </span>
-                {isActive && (
-                  <div 
-                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
-  // Simplified desktop navigation for better performance
+  // Simple, clean navigation without complex animations
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black/80 backdrop-blur-md border-t border-white/10">
       <div className="grid w-full grid-cols-5 h-16">
@@ -137,36 +87,23 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
             <button
               key={item.href}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-200",
-                "hover:bg-white/5 active:scale-95"
+                "relative flex flex-col items-center justify-center gap-1 p-1 transition-colors duration-200",
+                "hover:bg-white/5 active:bg-white/10"
               )}
               onClick={() => setActiveTab(item.href)}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-white/10 rounded-lg"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
-              )}
               <div className={cn(
-                "relative z-10 transition-colors duration-200",
+                "transition-colors duration-200",
                 isActive ? item.iconColor : "text-white/70"
               )}>
                 {item.icon}
               </div>
               <span className={cn(
-                "relative z-10 text-xs font-medium transition-colors duration-200",
+                "text-xs font-medium transition-colors duration-200",
                 isActive ? "text-white" : "text-white/70"
               )}>
                 {item.label}
               </span>
-              {isActive && (
-                <div 
-                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-              )}
             </button>
           )
         })}
