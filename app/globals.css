@@ -57,6 +57,36 @@ body {
   -webkit-backface-visibility: hidden !important;
 }
 
+/* Enhanced mobile bottom navigation */
+@media (max-width: 768px) {
+  .fixed.bottom-0 {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 9999 !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    will-change: transform !important;
+  }
+  
+  /* Ensure body doesn't interfere with fixed positioning */
+  body {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+  
+  /* Prevent iOS Safari from hiding the bottom bar */
+  @supports (-webkit-touch-callout: none) {
+    .fixed.bottom-0 {
+      position: fixed !important;
+      bottom: env(safe-area-inset-bottom, 0) !important;
+    }
+  }
+}
+
 /* Ensure no parent containers interfere with fixed positioning */
 * {
   box-sizing: border-box;

@@ -76,10 +76,22 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Simple, clean navigation with app colors and proper fixed positioning
+  // Enhanced navigation with smooth animations and proper mobile fixed positioning
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-black/90 backdrop-blur-lg border-t border-white/20 shadow-2xl">
-      <div className="grid w-full grid-cols-5 h-16">
+    <div 
+      className="fixed bottom-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-xl border-t border-white/20 shadow-2xl"
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999,
+        WebkitTransform: 'translateZ(0)',
+        transform: 'translateZ(0)',
+        willChange: 'transform'
+      }}
+    >
+      <div className="grid w-full grid-cols-5 h-16 relative">
         {menuItems.map((item) => {
           const isActive = activeTab === item.href
 
@@ -87,28 +99,79 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
             <button
               key={item.href}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-200",
-                "hover:bg-white/10 active:bg-white/15",
-                isActive && "bg-white/5"
+                "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-300 ease-out",
+                "hover:bg-white/10 active:bg-white/15"
               )}
               onClick={() => setActiveTab(item.href)}
             >
-              <div className={cn(
-                "transition-colors duration-200",
-                isActive ? item.iconColor : "text-white/60"
-              )}>
-                {item.icon}
-              </div>
-              <span className={cn(
-                "text-xs font-medium transition-colors duration-200",
-                isActive ? "text-white" : "text-white/60"
-              )}>
-                {item.label}
-              </span>
+              {/* Animated background for active tab */}
               {isActive && (
-                <div 
+                <motion.div
+                  layoutId="activeTabBackground"
+                  className="absolute inset-0 bg-white/10 rounded-lg"
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 30,
+                    mass: 0.8
+                  }}
+                />
+              )}
+              
+              {/* Icon with smooth color transition */}
+              <motion.div 
+                className={cn(
+                  "relative z-10 transition-colors duration-300",
+                  isActive ? item.iconColor : "text-white/60"
+                )}
+                animate={{
+                  scale: isActive ? 1.1 : 1,
+                  y: isActive ? -1 : 0
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 25,
+                  mass: 0.6
+                }}
+              >
+                {item.icon}
+              </motion.div>
+              
+              {/* Label with smooth color transition */}
+              <motion.span 
+                className={cn(
+                  "relative z-10 text-xs font-medium transition-colors duration-300",
+                  isActive ? "text-white" : "text-white/60"
+                )}
+                animate={{
+                  scale: isActive ? 1.05 : 1,
+                  y: isActive ? -1 : 0
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 25,
+                  mass: 0.6
+                }}
+              >
+                {item.label}
+              </motion.span>
+              
+              {/* Top indicator with smooth animation */}
+              {isActive && (
+                <motion.div 
                   className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
                   style={{ backgroundColor: item.color }}
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  animate={{ scaleX: 1, opacity: 1 }}
+                  exit={{ scaleX: 0, opacity: 0 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 30,
+                    mass: 0.5
+                  }}
                 />
               )}
             </button>
