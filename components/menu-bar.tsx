@@ -76,7 +76,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Enhanced navigation with smooth animations and proper mobile fixed positioning
+  // Optimized navigation with smooth, reliable animations
   return (
     <div 
       className="fixed bottom-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-xl border-t border-white/20 shadow-2xl"
@@ -99,81 +99,66 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
             <button
               key={item.href}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-300 ease-out",
+                "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-200 ease-out",
                 "hover:bg-white/10 active:bg-white/15"
               )}
               onClick={() => setActiveTab(item.href)}
             >
-              {/* Animated background for active tab */}
-              {isActive && (
-                <motion.div
-                  layoutId="activeTabBackground"
-                  className="absolute inset-0 bg-white/10 rounded-lg"
-                  transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 30,
-                    mass: 0.8
-                  }}
-                />
-              )}
+              {/* Single motion component for smooth background animation */}
+              <motion.div
+                layoutId="activeTabBackground"
+                className="absolute inset-0 bg-white/10 rounded-lg"
+                transition={{
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 35,
+                  mass: 0.6
+                }}
+                style={{
+                  opacity: isActive ? 1 : 0,
+                  scale: isActive ? 1 : 0.95
+                }}
+              />
               
-              {/* Icon with smooth color transition */}
+              {/* Icon with optimized animation */}
               <motion.div 
                 className={cn(
-                  "relative z-10 transition-colors duration-300",
+                  "relative z-10 transition-colors duration-200",
                   isActive ? item.iconColor : "text-white/60"
                 )}
                 animate={{
-                  scale: isActive ? 1.1 : 1,
-                  y: isActive ? -1 : 0
+                  scale: isActive ? 1.05 : 1,
+                  y: isActive ? -0.5 : 0
                 }}
                 transition={{
                   type: "spring",
-                  stiffness: 400,
-                  damping: 25,
-                  mass: 0.6
+                  stiffness: 500,
+                  damping: 30,
+                  mass: 0.5
                 }}
               >
                 {item.icon}
               </motion.div>
               
-              {/* Label with smooth color transition */}
+              {/* Label with optimized animation */}
               <motion.span 
                 className={cn(
-                  "relative z-10 text-xs font-medium transition-colors duration-300",
+                  "relative z-10 text-xs font-medium transition-colors duration-200",
                   isActive ? "text-white" : "text-white/60"
                 )}
                 animate={{
-                  scale: isActive ? 1.05 : 1,
-                  y: isActive ? -1 : 0
+                  scale: isActive ? 1.02 : 1,
+                  y: isActive ? -0.5 : 0
                 }}
                 transition={{
                   type: "spring",
-                  stiffness: 400,
-                  damping: 25,
-                  mass: 0.6
+                  stiffness: 500,
+                  damping: 30,
+                  mass: 0.5
                 }}
               >
                 {item.label}
               </motion.span>
-              
-              {/* Top indicator with smooth animation */}
-              {isActive && (
-                <motion.div 
-                  className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                  initial={{ scaleX: 0, opacity: 0 }}
-                  animate={{ scaleX: 1, opacity: 1 }}
-                  exit={{ scaleX: 0, opacity: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 500,
-                    damping: 30,
-                    mass: 0.5
-                  }}
-                />
-              )}
             </button>
           )
         })}
