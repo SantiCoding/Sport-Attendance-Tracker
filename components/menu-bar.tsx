@@ -76,31 +76,28 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Fix mobile positioning without breaking app functionality
+  // Fix mobile positioning to be at bottom of phone screen
   useEffect(() => {
     if (isMobile) {
       // Add safe area padding for mobile devices
       const root = document.documentElement
       root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)')
       
-      // Ensure navigation stays at bottom by adding padding to main content
-      const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
-      if (mainContent) {
-        mainContent.style.paddingBottom = '80px' // Space for navigation
-      }
-      
-      return () => {
-        // Clean up padding when component unmounts
-        const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
-        if (mainContent) {
-          mainContent.style.paddingBottom = ''
-        }
+      // Force navigation to stay at bottom of viewport, not app content
+      const navElement = document.querySelector('[data-nav="bottom"]') as HTMLElement
+      if (navElement) {
+        navElement.style.position = 'fixed'
+        navElement.style.bottom = '0'
+        navElement.style.left = '0'
+        navElement.style.right = '0'
+        navElement.style.zIndex = '9999'
       }
     }
   }, [isMobile])
 
   return (
     <div
+      data-nav="bottom"
       className="fixed bottom-0 left-0 right-0 z-[9999]"
       style={{
         position: 'fixed',
@@ -150,9 +147,9 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                   initial={false}
                   transition={{
                     type: "spring",
-                    stiffness: isMobile ? 250 : 350,
-                    damping: isMobile ? 35 : 25,
-                    mass: isMobile ? 1.2 : 0.8
+                    stiffness: isMobile ? 150 : 350,
+                    damping: isMobile ? 40 : 25,
+                    mass: isMobile ? 2.0 : 0.8
                   }}
                   style={{
                     background: item.gradient
