@@ -78,18 +78,19 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
 
   return (
     <div
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[9999] mb-6"
+      className="fixed bottom-0 left-0 right-0 z-[9999]"
       style={{
         position: 'fixed',
         bottom: 0,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        left: 0,
+        right: 0,
         zIndex: 9999,
-        WebkitTransform: 'translateX(-50%) translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+        transform: 'translateZ(0)',
         willChange: 'transform'
       }}
     >
-      <div className="flex items-center gap-3 bg-black/95 backdrop-blur-xl border border-white/20 py-1 px-1 rounded-full shadow-2xl">
+      <div className="flex items-center justify-center w-full bg-background/5 backdrop-blur-lg border-t border-white/20 py-1 px-2 shadow-2xl">
         {menuItems.map((item) => {
           const isActive = activeTab === item.href
 
@@ -98,7 +99,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
               key={item.href}
               onClick={() => setActiveTab(item.href)}
               className={cn(
-                "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors duration-200",
+                "relative cursor-pointer text-sm font-semibold px-2 py-2 transition-colors duration-200 flex-1",
                 "text-white/80 hover:text-white",
                 isActive && "text-white"
               )}
@@ -120,12 +121,13 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
               {isActive && (
                 <motion.div
                   layoutId="lamp"
-                  className="absolute inset-0 w-full rounded-full -z-10"
+                  className="absolute inset-0 w-full -z-10"
                   initial={false}
                   transition={{
                     type: "spring",
-                    stiffness: 300,
-                    damping: 30,
+                    stiffness: 400,
+                    damping: 25,
+                    mass: 0.8
                   }}
                   style={{
                     background: item.gradient
@@ -133,7 +135,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                 >
                   {/* Top indicator bar with gradient glow */}
                   <div 
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-t-full"
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1"
                     style={{
                       background: `linear-gradient(90deg, ${item.color}40, ${item.color}80, ${item.color}40)`
                     }}
