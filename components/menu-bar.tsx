@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { motion, PanInfo } from "framer-motion"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import { Users, CalendarDays, Search, Clock, BarChart3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -76,89 +76,90 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Optimized navigation with smooth, reliable animations
   return (
-    <div 
-      className="fixed bottom-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-xl border-t border-white/20 shadow-2xl"
+    <div
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[9999] mb-6"
       style={{
         position: 'fixed',
         bottom: 0,
-        left: 0,
-        right: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
         zIndex: 9999,
-        WebkitTransform: 'translateZ(0)',
-        transform: 'translateZ(0)',
+        WebkitTransform: 'translateX(-50%) translateZ(0)',
         willChange: 'transform'
       }}
     >
-      <div className="grid w-full grid-cols-5 h-16 relative">
+      <div className="flex items-center gap-3 bg-black/95 backdrop-blur-xl border border-white/20 py-1 px-1 rounded-full shadow-2xl">
         {menuItems.map((item) => {
           const isActive = activeTab === item.href
 
           return (
             <button
               key={item.href}
-              className={cn(
-                "relative flex flex-col items-center justify-center gap-1 p-1 transition-all duration-200 ease-out",
-                "hover:bg-white/10 active:bg-white/15"
-              )}
               onClick={() => setActiveTab(item.href)}
+              className={cn(
+                "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors duration-200",
+                "text-white/80 hover:text-white",
+                isActive && "text-white"
+              )}
             >
-              {/* Single motion component for smooth background animation */}
-              <motion.div
-                layoutId="activeTabBackground"
-                className="absolute inset-0 bg-white/10 rounded-lg"
-                transition={{
-                  type: "spring",
-                  stiffness: 500,
-                  damping: 35,
-                  mass: 0.6
-                }}
-                style={{
-                  opacity: isActive ? 1 : 0,
-                  scale: isActive ? 1 : 0.95
-                }}
-              />
-              
-              {/* Icon with optimized animation */}
-              <motion.div 
-                className={cn(
-                  "relative z-10 transition-colors duration-200",
+              {/* Icon and Label */}
+              <div className="flex flex-col items-center gap-1">
+                <div className={cn(
+                  "transition-colors duration-200",
                   isActive ? item.iconColor : "text-white/60"
-                )}
-                animate={{
-                  scale: isActive ? 1.05 : 1,
-                  y: isActive ? -0.5 : 0
-                }}
-                transition={{
-                  type: "spring",
-                  stiffness: 500,
-                  damping: 30,
-                  mass: 0.5
-                }}
-              >
-                {item.icon}
-              </motion.div>
-              
-              {/* Label with optimized animation */}
-              <motion.span 
-                className={cn(
-                  "relative z-10 text-xs font-medium transition-colors duration-200",
-                  isActive ? "text-white" : "text-white/60"
-                )}
-                animate={{
-                  scale: isActive ? 1.02 : 1,
-                  y: isActive ? -0.5 : 0
-                }}
-                transition={{
-                  type: "spring",
-                  stiffness: 500,
-                  damping: 30,
-                  mass: 0.5
-                }}
-              >
-                {item.label}
-              </motion.span>
+                )}>
+                  {item.icon}
+                </div>
+                <span className="text-xs font-medium transition-colors duration-200">
+                  {item.label}
+                </span>
+              </div>
+
+              {/* Animated Lamp Indicator with Gradient Glow */}
+              {isActive && (
+                <motion.div
+                  layoutId="lamp"
+                  className="absolute inset-0 w-full rounded-full -z-10"
+                  initial={false}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                  style={{
+                    background: item.gradient
+                  }}
+                >
+                  {/* Top indicator bar with gradient glow */}
+                  <div 
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 rounded-t-full"
+                    style={{
+                      background: `linear-gradient(90deg, ${item.color}40, ${item.color}80, ${item.color}40)`
+                    }}
+                  >
+                    {/* Gradient blur effects */}
+                    <div 
+                      className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2"
+                      style={{
+                        background: `${item.color}20`
+                      }}
+                    />
+                    <div 
+                      className="absolute w-8 h-6 rounded-full blur-md -top-1"
+                      style={{
+                        background: `${item.color}20`
+                      }}
+                    />
+                    <div 
+                      className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2"
+                      style={{
+                        background: `${item.color}20`
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
             </button>
           )
         })}
