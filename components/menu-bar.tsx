@@ -76,60 +76,31 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Ensure navigation stays fixed and add persistent content padding
+  // Update navigation height dynamically and ensure proper positioning
   useEffect(() => {
-    // Add safe area padding for mobile devices
-    const root = document.documentElement
-    root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)')
-    
-    // Add persistent padding to main content so it doesn't get hidden behind navigation
-    const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
-    if (mainContent) {
-      mainContent.style.paddingBottom = '80px' // Space for navigation bar
-      mainContent.style.boxSizing = 'border-box'
+    function updateNavHeight() {
+      const nav = document.querySelector('.navbar')
+      if (!nav) return
+      const h = Math.round(nav.getBoundingClientRect().height)
+      document.documentElement.style.setProperty('--nav-height', `${h}px`)
     }
-    
-    // Ensure navigation stays fixed by setting body styles
-    document.body.style.position = 'relative'
-    document.body.style.minHeight = '100vh'
-    
-    // Force navigation to stay fixed using direct DOM manipulation
-    const navElement = document.querySelector('[data-nav="bottom"]') as HTMLElement
-    if (navElement) {
-      navElement.style.setProperty('position', 'fixed', 'important')
-      navElement.style.setProperty('bottom', '0', 'important')
-      navElement.style.setProperty('left', '0', 'important')
-      navElement.style.setProperty('right', '0', 'important')
-      navElement.style.setProperty('z-index', '9999', 'important')
-      navElement.style.setProperty('width', '100%', 'important')
-    }
-    
+
+    // Update height on load, resize, and after a short delay for async fonts/assets
+    window.addEventListener('load', updateNavHeight)
+    window.addEventListener('resize', updateNavHeight)
+    setTimeout(updateNavHeight, 100) // safety for async fonts/assets
+
     return () => {
-      // Clean up when component unmounts
-      const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
-      if (mainContent) {
-        mainContent.style.paddingBottom = ''
-        mainContent.style.boxSizing = ''
-      }
-      document.body.style.position = ''
-      document.body.style.minHeight = ''
+      window.removeEventListener('load', updateNavHeight)
+      window.removeEventListener('resize', updateNavHeight)
     }
   }, [])
 
   return (
     <div
       data-nav="bottom"
-      className="fixed bottom-0 left-0 right-0 z-[9999]"
+      className="navbar"
       style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        width: '100%',
-        zIndex: 9999,
-        WebkitTransform: 'translateZ(0)',
-        transform: 'translateZ(0)',
-        willChange: 'transform',
         // Add safe area padding for mobile
         paddingBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : '0px'
       } as React.CSSProperties}
@@ -139,95 +110,75 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
           const isActive = activeTab === item.href
 
           return (
-            <button
-              key={item.href}
-              onClick={() => setActiveTab(item.href)}
-              className={cn(
-                "relative cursor-pointer text-sm font-semibold px-2 py-2 transition-colors duration-200 flex-1",
-                "text-white/80 hover:text-white",
-                isActive && "text-white"
-              )}
-            >
-              {/* Icon and Label with Smooth Animations */}
-              <div className="flex flex-col items-center gap-1">
-                <motion.div 
-                  className={cn(
-                    "transition-colors duration-300",
-                    isActive ? item.iconColor : "text-white/60"
-                  )}
-                  animate={{
-                    scale: isActive ? 1.1 : 1,
-                    y: isActive ? -1 : 0
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 25
-                  }}
-                >
-                  {item.icon}
-                </motion.div>
-                <motion.span 
-                  className="text-xs font-medium transition-colors duration-300"
-                  animate={{
-                    scale: isActive ? 1.05 : 1,
-                    y: isActive ? -1 : 0
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 25
-                  }}
-                >
-                  {item.label}
-                </motion.span>
-              </div>
+                     <button
+                       key={item.href}
+                       onClick={() => setActiveTab(item.href)}
+                       className={cn(
+                         "tab relative cursor-pointer text-sm font-semibold px-2 py-2 flex-1",
+                         "text-white/80 hover:text-white",
+                         isActive && "active text-white"
+                       )}
+                     >
+                       {/* Icon and Label with Optimized Animations */}
+                       <div className="flex flex-col items-center gap-1">
+                         <div
+                           className={cn(
+                             "transition-colors duration-300",
+                             isActive ? item.iconColor : "text-white/60"
+                           )}
+                         >
+                           {item.icon}
+                         </div>
+                         <span className="text-xs font-medium transition-colors duration-300">
+                           {item.label}
+                         </span>
+                       </div>
 
-              {/* Smooth Animated Lamp Indicator with Gradient Glow */}
-              {isActive && (
-                <motion.div
-                  layoutId="lamp"
-                  className="absolute inset-0 w-full -z-10"
-                  initial={false}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30,
-                    mass: 0.8
-                  }}
-                  style={{
-                    background: item.gradient
-                  }}
-                >
-                  {/* Top indicator bar with gradient glow */}
-                  <div 
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1"
-                    style={{
-                      background: `linear-gradient(90deg, ${item.color}40, ${item.color}80, ${item.color}40)`
-                    }}
-                  >
-                    {/* Gradient blur effects */}
-                    <div 
-                      className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2"
-                      style={{
-                        background: `${item.color}20`
-                      }}
-                    />
-                    <div 
-                      className="absolute w-8 h-6 rounded-full blur-md -top-1"
-                      style={{
-                        background: `${item.color}20`
-                      }}
-                    />
-                    <div 
-                      className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2"
-                      style={{
-                        background: `${item.color}20`
-                      }}
-                    />
-                  </div>
-                </motion.div>
-              )}
+                       {/* Optimized Lamp Indicator with Gradient Glow */}
+                       {isActive && (
+                         <motion.div
+                           layoutId="lamp"
+                           className="absolute inset-0 w-full -z-10"
+                           initial={false}
+                           transition={{
+                             type: "spring",
+                             stiffness: 300,
+                             damping: 30,
+                             mass: 0.8
+                           }}
+                           style={{
+                             background: item.gradient
+                           }}
+                         >
+                           {/* Top indicator bar with gradient glow */}
+                           <div
+                             className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1"
+                             style={{
+                               background: `linear-gradient(90deg, ${item.color}40, ${item.color}80, ${item.color}40)`
+                             }}
+                           >
+                             {/* Gradient blur effects */}
+                             <div
+                               className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2"
+                               style={{
+                                 background: `${item.color}20`
+                               }}
+                             />
+                             <div
+                               className="absolute w-8 h-6 rounded-full blur-md -top-1"
+                               style={{
+                                 background: `${item.color}20`
+                               }}
+                             />
+                             <div
+                               className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2"
+                               style={{
+                                 background: `${item.color}20`
+                               }}
+                             />
+                           </div>
+                         </motion.div>
+                       )}
             </button>
           )
         })}
