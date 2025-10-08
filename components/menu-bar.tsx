@@ -76,14 +76,26 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Remove animations and fix mobile positioning
+  // Fix navigation positioning and add content padding
   useEffect(() => {
-    if (isMobile) {
-      // Add safe area padding for mobile devices
-      const root = document.documentElement
-      root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)')
+    // Add safe area padding for mobile devices
+    const root = document.documentElement
+    root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)')
+    
+    // Add padding to main content so it doesn't get hidden behind navigation
+    const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
+    if (mainContent) {
+      mainContent.style.paddingBottom = '80px' // Space for navigation bar
     }
-  }, [isMobile])
+    
+    return () => {
+      // Clean up padding when component unmounts
+      const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
+      if (mainContent) {
+        mainContent.style.paddingBottom = ''
+      }
+    }
+  }, [])
 
   return (
     <div
@@ -94,6 +106,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
         bottom: 0,
         left: 0,
         right: 0,
+        width: '100%',
         zIndex: 9999,
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
