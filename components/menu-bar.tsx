@@ -76,24 +76,43 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Fix navigation positioning and add content padding
+  // Ensure navigation stays fixed and add persistent content padding
   useEffect(() => {
     // Add safe area padding for mobile devices
     const root = document.documentElement
     root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)')
     
-    // Add padding to main content so it doesn't get hidden behind navigation
+    // Add persistent padding to main content so it doesn't get hidden behind navigation
     const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
     if (mainContent) {
       mainContent.style.paddingBottom = '80px' // Space for navigation bar
+      mainContent.style.boxSizing = 'border-box'
+    }
+    
+    // Ensure navigation stays fixed by setting body styles
+    document.body.style.position = 'relative'
+    document.body.style.minHeight = '100vh'
+    
+    // Force navigation to stay fixed using direct DOM manipulation
+    const navElement = document.querySelector('[data-nav="bottom"]') as HTMLElement
+    if (navElement) {
+      navElement.style.setProperty('position', 'fixed', 'important')
+      navElement.style.setProperty('bottom', '0', 'important')
+      navElement.style.setProperty('left', '0', 'important')
+      navElement.style.setProperty('right', '0', 'important')
+      navElement.style.setProperty('z-index', '9999', 'important')
+      navElement.style.setProperty('width', '100%', 'important')
     }
     
     return () => {
-      // Clean up padding when component unmounts
+      // Clean up when component unmounts
       const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
       if (mainContent) {
         mainContent.style.paddingBottom = ''
+        mainContent.style.boxSizing = ''
       }
+      document.body.style.position = ''
+      document.body.style.minHeight = ''
     }
   }, [])
 
