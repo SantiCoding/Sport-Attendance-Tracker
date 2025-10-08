@@ -289,6 +289,9 @@ export default function TennisTracker() {
   const [smartAttendancePresentStudents, setSmartAttendancePresentStudents] = useState("")
 
   const [attendanceSelections, setAttendanceSelections] = useState<Record<string, "present" | "absent" | null>>({})
+  const [extraStudentSelections, setExtraStudentSelections] = useState<Record<string, "present" | "absent" | null>>({})
+  const [showExtraStudents, setShowExtraStudents] = useState(false)
+  const [extraStudentSearch, setExtraStudentSearch] = useState("")
   const [sessionCancelled, setSessionCancelled] = useState(false)
 
   const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({})
@@ -958,6 +961,58 @@ export default function TennisTracker() {
     })
   }
 
+  const toggleExtraStudentSelection = (studentId: string, status: "present" | "absent") => {
+    setExtraStudentSelections((prev) => {
+      const newState = {
+        ...prev,
+        [studentId]: prev[studentId] === status ? null : status,
+      }
+      console.log(`Toggle extra student ${studentId} to ${status}:`, newState)
+      return newState
+    })
+  }
+
+  // Helper functions for extra students
+  const getStudentsWithPendingMakeups = useCallback(() => {
+    if (!currentProfile) return []
+    return currentProfile.students.filter(student => 
+      currentProfile.makeupSessions?.some(makeup => 
+        makeup.studentId === student.id && makeup.status === "pending"
+      )
+    )
+  }, [currentProfile])
+
+  const getFilteredExtraStudents = useCallback(() => {
+    if (!currentProfile) return []
+    
+    let students = currentProfile.students
+    
+    // Filter by search term
+    if (extraStudentSearch.trim()) {
+      const searchTerm = extraStudentSearch.toLowerCase()
+      students = students.filter(student => 
+        student.name.toLowerCase().includes(searchTerm)
+      )
+    }
+    
+    // Sort: students with pending makeups first, then alphabetically
+    return students.sort((a, b) => {
+      const aHasMakeup = getStudentsWithPendingMakeups().some(s => s.id === a.id)
+      const bHasMakeup = getStudentsWithPendingMakeups().some(s => s.id === b.id)
+      
+      if (aHasMakeup && !bHasMakeup) return -1
+      if (!aHasMakeup && bHasMakeup) return 1
+      return a.name.localeCompare(b.name)
+    })
+  }, [currentProfile, extraStudentSearch, getStudentsWithPendingMakeups])
+
+  const hasPendingMakeup = useCallback((studentId: string) => {
+    if (!currentProfile) return false
+    return currentProfile.makeupSessions?.some(makeup => 
+      makeup.studentId === studentId && makeup.status === "pending"
+    ) || false
+  }, [currentProfile])
+
   const saveAttendance = () => {
     if (!currentProfile || !selectedGroupId) return
 
@@ -1009,22 +1064,104 @@ export default function TennisTracker() {
       }
     })
 
+    // Process extra students (students from other groups)
+    const completedMakeups: string[] = []
+    Object.entries(extraStudentSelections).forEach(([studentId, status]) => {
+      if (!status) return
+
+      const student = currentProfile.students.find((s) => s.id === studentId)
+      if (!student) return
+
+      const attendanceRecord: AttendanceRecord = {
+        id: generateUUID(),
+        date: selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        time: timeString,
+        groupId: selectedGroupId,
+        studentId,
+        status,
+        notes: attendanceNotes,
+        timeAdjustmentAmount: timeAdjustmentNeeded ? timeAdjustmentAmount : undefined,
+        timeAdjustmentType: timeAdjustmentNeeded ? timeAdjustmentType : undefined,
+        timeAdjustmentReason: timeAdjustmentNeeded ? timeAdjustmentReason : undefined,
+      }
+
+      newAttendanceRecords.push(attendanceRecord)
+
+      if (status === "present") {
+        updateStudentSessionCount(studentId, "attended")
+        
+        // Check if student has pending makeup and auto-complete it
+        const pendingMakeup = currentProfile.makeupSessions?.find(makeup => 
+          makeup.studentId === studentId && makeup.status === "pending"
+        )
+        
+        if (pendingMakeup) {
+          completedMakeups.push(student.name)
+        }
+      } else if (status === "absent") {
+        // For extra students marked absent, don't create makeup sessions
+        // They're not part of this group, so absence doesn't create makeup obligation
+        updateStudentSessionCount(studentId, "missed")
+      }
+    })
+
+    // Handle makeup session updates for extra students
+    let finalMakeupSessions = [...(currentProfile.makeupSessions || []), ...newMakeupSessions]
+    let finalCompletedMakeups = [...(currentProfile.completedMakeupSessions || [])]
+    
+    // Remove completed makeups from pending and add to completed
+    Object.entries(extraStudentSelections).forEach(([studentId, status]) => {
+      if (status === "present") {
+        const pendingMakeup = currentProfile.makeupSessions?.find(makeup => 
+          makeup.studentId === studentId && makeup.status === "pending"
+        )
+        
+        if (pendingMakeup) {
+          const completedMakeup = {
+            ...pendingMakeup,
+            status: "completed" as const,
+            completedDate: new Date().toISOString(),
+            completedGroupId: selectedGroupId,
+            completedNotes: `Completed during ${group.name} session`
+          }
+          
+          // Remove from pending
+          finalMakeupSessions = finalMakeupSessions.filter(m => m.id !== pendingMakeup.id)
+          // Add to completed
+          finalCompletedMakeups.push(completedMakeup)
+        }
+      }
+    })
+
     const updatedProfile = {
       ...currentProfile,
       attendanceRecords: [...currentProfile.attendanceRecords, ...newAttendanceRecords],
-      makeupSessions: [...(currentProfile.makeupSessions || []), ...newMakeupSessions],
+      makeupSessions: finalMakeupSessions,
+      completedMakeupSessions: finalCompletedMakeups,
     }
 
     updateProfile(updatedProfile)
     setAttendanceSelections({})
+    setExtraStudentSelections({})
+    setShowExtraStudents(false)
+    setExtraStudentSearch("")
     setAttendanceNotes("")
     setTimeAdjustmentAmount("")
     setTimeAdjustmentReason("")
 
     const presentCount = newAttendanceRecords.filter((r) => r.status === "present").length
     const absentCount = newAttendanceRecords.filter((r) => r.status === "absent").length
+    const extraStudentCount = Object.keys(extraStudentSelections).length
 
-    toast(`✅ Attendance saved: ${presentCount} present, ${absentCount} absent`, "success")
+    let toastMessage = `✅ Attendance saved: ${presentCount} present, ${absentCount} absent`
+    if (extraStudentCount > 0) {
+      toastMessage += ` (${extraStudentCount} extra students)`
+    }
+    if (completedMakeups.length > 0) {
+      toastMessage += `\n🎯 Auto-completed makeups: ${completedMakeups.join(", ")}`
+    }
+    
+    toast(toastMessage, "success")
 
     // Navigate to reports tab after saving and show sessions (not terms)
     setActiveTab("reports")
@@ -1258,6 +1395,9 @@ export default function TennisTracker() {
 
     let updatedStudents = [...currentProfile.students]
     const newAttendanceRecords: AttendanceRecord[] = []
+    const newMakeupSessions: MakeupSession[] = []
+    const completedMakeups: string[] = []
+    const extraStudents: string[] = []
 
     // Process all students in the group
     group.studentIds.forEach((studentId) => {
@@ -1306,11 +1446,90 @@ export default function TennisTracker() {
           status: "pending",
         }
 
+        newMakeupSessions.push(makeupSession)
         updatedStudents = updatedStudents.map((s) =>
           s.id === studentId ? { ...s, makeupSessions: s.makeupSessions + 1 } : s,
         )
+      }
+    })
 
-        currentProfile.makeupSessions = [...(currentProfile.makeupSessions || []), makeupSession]
+    // Process extra students (students not in the selected group)
+    const studentsNotInGroup = currentProfile.students.filter(student => 
+      !group.studentIds.includes(student.id)
+    )
+
+    studentsNotInGroup.forEach((student) => {
+      const isPresent = presentStudentNames.some(
+        (name) =>
+          name.toLowerCase().includes(student.name.toLowerCase()) ||
+          student.name.toLowerCase().includes(name.toLowerCase()),
+      )
+
+      if (isPresent) {
+        // Create attendance record for extra student
+        const attendanceRecord: AttendanceRecord = {
+          id: generateUUID(),
+          date: currentDate,
+          time: timeString,
+          groupId: smartAttendanceGroupId,
+          studentId: student.id,
+          status: "present",
+          notes: "Extra student (makeup session)",
+          timeAdjustmentAmount: smartAttendanceTimeAdjustment ? smartAttendanceTimeAdjustmentAmount : undefined,
+          timeAdjustmentType: smartAttendanceTimeAdjustment ? smartAttendanceTimeAdjustmentType : undefined,
+          timeAdjustmentReason: smartAttendanceTimeAdjustment ? smartAttendanceTimeAdjustmentReason : undefined,
+        }
+
+        newAttendanceRecords.push(attendanceRecord)
+        extraStudents.push(student.name)
+
+        // Update student sessions
+        updatedStudents = updatedStudents.map((s) =>
+          s.id === student.id ? { ...s, remainingSessions: Math.max(0, s.remainingSessions - 1) } : s,
+        )
+
+        // Check if student has pending makeup and auto-complete it
+        const pendingMakeup = currentProfile.makeupSessions?.find(makeup => 
+          makeup.studentId === student.id && makeup.status === "pending"
+        )
+        
+        if (pendingMakeup) {
+          completedMakeups.push(student.name)
+        }
+      }
+    })
+
+    // Handle makeup session updates
+    let finalMakeupSessions = [...(currentProfile.makeupSessions || []), ...newMakeupSessions]
+    let finalCompletedMakeups = [...(currentProfile.completedMakeupSessions || [])]
+    
+    // Remove completed makeups from pending and add to completed
+    studentsNotInGroup.forEach((student) => {
+      const isPresent = presentStudentNames.some(
+        (name) =>
+          name.toLowerCase().includes(student.name.toLowerCase()) ||
+          student.name.toLowerCase().includes(name.toLowerCase()),
+      )
+
+      if (isPresent) {
+        const pendingMakeup = currentProfile.makeupSessions?.find(makeup => 
+          makeup.studentId === student.id && makeup.status === "pending"
+        )
+        
+        if (pendingMakeup) {
+          const completedMakeup = {
+            ...pendingMakeup,
+            status: "completed" as const,
+            completedDate: new Date().toISOString(),
+            completedGroupId: smartAttendanceGroupId,
+            completedNotes: `Completed during ${group.name} session`
+          }
+          
+          // Remove from pending
+          finalMakeupSessions = finalMakeupSessions.filter(m => m.id !== pendingMakeup.id)
+          // Add to completed
+          finalCompletedMakeups.push(completedMakeup)
+        }
       }
     })
 
@@ -1318,6 +1537,8 @@ export default function TennisTracker() {
       ...currentProfile,
       students: updatedStudents,
       attendanceRecords: [...currentProfile.attendanceRecords, ...newAttendanceRecords],
+      makeupSessions: finalMakeupSessions,
+      completedMakeupSessions: finalCompletedMakeups,
     }
 
     updateProfile(updatedProfile)
@@ -1328,7 +1549,15 @@ export default function TennisTracker() {
     const presentCount = newAttendanceRecords.filter((r) => r.status === "present").length
     const absentCount = newAttendanceRecords.filter((r) => r.status === "absent").length
 
-    toast(`✅ Attendance recorded: ${presentCount} present, ${absentCount} absent`, "success")
+    let toastMessage = `✅ Attendance recorded: ${presentCount} present, ${absentCount} absent`
+    if (extraStudents.length > 0) {
+      toastMessage += `\n🎯 Extra students: ${extraStudents.join(", ")}`
+    }
+    if (completedMakeups.length > 0) {
+      toastMessage += `\n🎯 Auto-completed makeups: ${completedMakeups.join(", ")}`
+    }
+    
+    toast(toastMessage, "success")
   }
 
   // Filter and sort students for search - Memoized for performance
@@ -2447,10 +2676,105 @@ export default function TennisTracker() {
                             })}
                         </div>
 
+                        {/* Extra Students Section */}
+                        <div className="mt-6 pt-6 border-t border-white/10">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4 text-blue-400" />
+                              <h3 className="text-primary-white font-medium">Extra Students (for Makeups)</h3>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowExtraStudents(!showExtraStudents)}
+                              className="glass-button text-primary-white border-blue-400/30 hover:bg-blue-500/10"
+                            >
+                              {showExtraStudents ? "Hide" : "Add Extra Students"}
+                            </Button>
+                          </div>
+
+                          {showExtraStudents && (
+                            <div className="space-y-4">
+                              <div>
+                                <Label className="text-secondary-white">Search Students</Label>
+                                <Input
+                                  value={extraStudentSearch}
+                                  onChange={(e) => setExtraStudentSearch(e.target.value)}
+                                  placeholder="Search by name..."
+                                  className="glass-input text-primary-white placeholder:text-tertiary-white mt-1"
+                                />
+                              </div>
+
+                              <div className="max-h-60 overflow-y-auto space-y-2">
+                                {getFilteredExtraStudents().map((student) => {
+                                  const currentSelection = extraStudentSelections[student.id]
+                                  const hasMakeup = hasPendingMakeup(student.id)
+
+                                  return (
+                                    <div key={student.id} className="glass-card p-3">
+                                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <h4 className="font-medium text-primary-white">{student.name}</h4>
+                                            {hasMakeup && (
+                                              <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-400/30 text-xs">
+                                                Has Makeup
+                                              </Badge>
+                                            )}
+                                          </div>
+                                          <p className="text-sm text-secondary-white">
+                                            Remaining: {student.remainingSessions} | Make-ups: {student.makeupSessions}
+                                          </p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            size="sm"
+                                            onClick={() => toggleExtraStudentSelection(student.id, "present")}
+                                            className={cn(
+                                              "transition-all duration-200 ease-in-out transform min-w-[60px] sm:min-w-[80px] active:scale-95",
+                                              extraStudentSelections[student.id] === "present"
+                                                ? "bg-green-500/20 backdrop-blur-sm border-2 border-green-400 text-green-300 font-bold shadow-lg shadow-green-500/25 ring-2 ring-green-400/40"
+                                                : "glass-button border border-green-400/30 text-primary-white hover:scale-105 hover:bg-green-500/10 hover:border-green-400/50",
+                                            )}
+                                            style={{ borderRadius: '8px' }}
+                                          >
+                                            <CheckCircle className="h-4 w-4 mr-1" />
+                                            <span className="text-sm font-medium">Present</span>
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            onClick={() => toggleExtraStudentSelection(student.id, "absent")}
+                                            className={cn(
+                                              "transition-all duration-200 ease-in-out transform min-w-[60px] sm:min-w-[80px] active:scale-95",
+                                              extraStudentSelections[student.id] === "absent"
+                                                ? "bg-red-500/20 backdrop-blur-sm border-2 border-red-400 text-red-300 font-bold shadow-lg shadow-red-500/25 ring-2 ring-red-400/40"
+                                                : "glass-button border border-red-400/30 text-primary-white hover:scale-105 hover:bg-red-500/10 hover:border-red-400/50",
+                                            )}
+                                            style={{ borderRadius: '8px' }}
+                                          >
+                                            <XCircle className="h-4 w-4 mr-1" />
+                                            <span className="text-sm font-medium">Absent</span>
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+
+                              {getFilteredExtraStudents().length === 0 && (
+                                <div className="text-center py-4 text-secondary-white">
+                                  {extraStudentSearch ? "No students found matching your search." : "No students available."}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
                         <div className="flex gap-3 mt-6">
                           <Button
                             onClick={saveAttendance}
-                            disabled={Object.keys(attendanceSelections).length === 0}
+                            disabled={Object.keys(attendanceSelections).length === 0 && Object.keys(extraStudentSelections).length === 0}
                             className="glass-button text-primary-white bg-blue-500/20 hover:bg-blue-500/30 flex-1"
                           >
                             <Save className="h-4 w-4 mr-2" />
@@ -2629,12 +2953,30 @@ export default function TennisTracker() {
                       <Textarea
                         value={smartAttendancePresentStudents}
                         onChange={(e) => setSmartAttendancePresentStudents(e.target.value)}
-                        placeholder="Enter student names (one per line or comma-separated)"
+                        placeholder="Enter student names (one per line or comma-separated). Can include students from any group for makeup sessions."
                         className="glass-input text-primary-white placeholder:text-tertiary-white min-h-[120px] mt-2"
                       />
                       <p className="text-tertiary-white text-xs mt-1">
-                        Format: Enter student names (one per line or comma-separated)
+                        Format: Enter student names (one per line or comma-separated). Students from other groups will be detected automatically.
                       </p>
+                    </div>
+
+                    {/* Extra Students Info */}
+                    <div className="glass-card p-4 bg-blue-500/5 border border-blue-400/20">
+                      <div className="flex items-start gap-3">
+                        <Users className="h-5 w-5 text-blue-400 mt-0.5" />
+                        <div>
+                          <h4 className="text-primary-white font-medium mb-1">Extra Students (Makeups)</h4>
+                          <p className="text-secondary-white text-sm">
+                            You can include students from any group in the text above. The system will automatically:
+                          </p>
+                          <ul className="text-tertiary-white text-xs mt-2 space-y-1">
+                            <li>• Detect students not in the selected group</li>
+                            <li>• Mark their attendance in the current group</li>
+                            <li>• Auto-complete any pending makeup sessions</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
 
                     <Button
