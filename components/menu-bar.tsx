@@ -98,14 +98,6 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
         willChange: 'transform',
-        // Force mobile positioning to bottom of viewport
-        ...(isMobile && {
-          position: 'fixed !important',
-          bottom: '0 !important',
-          left: '0 !important',
-          right: '0 !important',
-          zIndex: '9999 !important'
-        }),
         // Add safe area padding for mobile
         paddingBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : '0px'
       } as React.CSSProperties}
@@ -124,23 +116,53 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                 isActive && "text-white"
               )}
             >
-              {/* Icon and Label */}
+              {/* Icon and Label with Smooth Animations */}
               <div className="flex flex-col items-center gap-1">
-                <div className={cn(
-                  "transition-colors duration-200",
-                  isActive ? item.iconColor : "text-white/60"
-                )}>
+                <motion.div 
+                  className={cn(
+                    "transition-colors duration-300",
+                    isActive ? item.iconColor : "text-white/60"
+                  )}
+                  animate={{
+                    scale: isActive ? 1.1 : 1,
+                    y: isActive ? -1 : 0
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 25
+                  }}
+                >
                   {item.icon}
-                </div>
-                <span className="text-xs font-medium transition-colors duration-200">
+                </motion.div>
+                <motion.span 
+                  className="text-xs font-medium transition-colors duration-300"
+                  animate={{
+                    scale: isActive ? 1.05 : 1,
+                    y: isActive ? -1 : 0
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 25
+                  }}
+                >
                   {item.label}
-                </span>
+                </motion.span>
               </div>
 
-              {/* Instant Lamp Indicator with Gradient Glow */}
+              {/* Smooth Animated Lamp Indicator with Gradient Glow */}
               {isActive && (
-                <div
+                <motion.div
+                  layoutId="lamp"
                   className="absolute inset-0 w-full -z-10"
+                  initial={false}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                    mass: 0.8
+                  }}
                   style={{
                     background: item.gradient
                   }}
@@ -172,7 +194,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                       }}
                     />
                   </div>
-                </div>
+                </motion.div>
               )}
             </button>
           )
