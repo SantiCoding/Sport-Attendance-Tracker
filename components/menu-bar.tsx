@@ -76,25 +76,25 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Fix mobile positioning and prevent scroll issues
+  // Fix mobile positioning without breaking app functionality
   useEffect(() => {
     if (isMobile) {
-      // Prevent body scroll on mobile
-      document.body.style.position = 'fixed'
-      document.body.style.width = '100%'
-      document.body.style.height = '100%'
-      document.body.style.overflow = 'hidden'
-      
       // Add safe area padding for mobile devices
       const root = document.documentElement
       root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)')
       
+      // Ensure navigation stays at bottom by adding padding to main content
+      const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
+      if (mainContent) {
+        mainContent.style.paddingBottom = '80px' // Space for navigation
+      }
+      
       return () => {
-        // Restore body scroll when component unmounts
-        document.body.style.position = ''
-        document.body.style.width = ''
-        document.body.style.height = ''
-        document.body.style.overflow = ''
+        // Clean up padding when component unmounts
+        const mainContent = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
+        if (mainContent) {
+          mainContent.style.paddingBottom = ''
+        }
       }
     }
   }, [isMobile])
@@ -111,9 +111,6 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
         willChange: 'transform',
-        // Force mobile positioning
-        WebkitBackfaceVisibility: 'hidden',
-        backfaceVisibility: 'hidden',
         // Add safe area padding for mobile
         paddingBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : '0px'
       } as React.CSSProperties}
