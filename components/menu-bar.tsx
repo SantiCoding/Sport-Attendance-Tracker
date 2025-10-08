@@ -76,6 +76,29 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
+  // Fix mobile positioning and prevent scroll issues
+  useEffect(() => {
+    if (isMobile) {
+      // Prevent body scroll on mobile
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+      document.body.style.height = '100%'
+      document.body.style.overflow = 'hidden'
+      
+      // Add safe area padding for mobile devices
+      const root = document.documentElement
+      root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)')
+      
+      return () => {
+        // Restore body scroll when component unmounts
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.height = ''
+        document.body.style.overflow = ''
+      }
+    }
+  }, [isMobile])
+
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-[9999]"
@@ -90,7 +113,9 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
         willChange: 'transform',
         // Force mobile positioning
         WebkitBackfaceVisibility: 'hidden',
-        backfaceVisibility: 'hidden'
+        backfaceVisibility: 'hidden',
+        // Add safe area padding for mobile
+        paddingBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : '0px'
       } as React.CSSProperties}
     >
       <div className="flex items-center justify-center w-full bg-background/5 backdrop-blur-lg border-t border-white/20 py-1 px-2 shadow-2xl">
