@@ -87,8 +87,11 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
         zIndex: 9999,
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
-        willChange: 'transform'
-      }}
+        willChange: 'transform',
+        // Force mobile positioning
+        WebkitBackfaceVisibility: 'hidden',
+        backfaceVisibility: 'hidden'
+      } as React.CSSProperties}
     >
       <div className="flex items-center justify-center w-full bg-background/5 backdrop-blur-lg border-t border-white/20 py-1 px-2 shadow-2xl">
         {menuItems.map((item) => {
@@ -125,9 +128,9 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                   initial={false}
                   transition={{
                     type: "spring",
-                    stiffness: 400,
-                    damping: 25,
-                    mass: 0.8
+                    stiffness: isMobile ? 250 : 350,
+                    damping: isMobile ? 35 : 25,
+                    mass: isMobile ? 1.2 : 0.8
                   }}
                   style={{
                     background: item.gradient
