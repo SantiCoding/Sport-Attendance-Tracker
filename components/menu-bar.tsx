@@ -76,22 +76,12 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Fix mobile positioning to be at bottom of phone screen
+  // Remove animations and fix mobile positioning
   useEffect(() => {
     if (isMobile) {
       // Add safe area padding for mobile devices
       const root = document.documentElement
       root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom, 0px)')
-      
-      // Force navigation to stay at bottom of viewport, not app content
-      const navElement = document.querySelector('[data-nav="bottom"]') as HTMLElement
-      if (navElement) {
-        navElement.style.position = 'fixed'
-        navElement.style.bottom = '0'
-        navElement.style.left = '0'
-        navElement.style.right = '0'
-        navElement.style.zIndex = '9999'
-      }
     }
   }, [isMobile])
 
@@ -108,6 +98,14 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
         WebkitTransform: 'translateZ(0)',
         transform: 'translateZ(0)',
         willChange: 'transform',
+        // Force mobile positioning to bottom of viewport
+        ...(isMobile && {
+          position: 'fixed !important',
+          bottom: '0 !important',
+          left: '0 !important',
+          right: '0 !important',
+          zIndex: '9999 !important'
+        }),
         // Add safe area padding for mobile
         paddingBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : '0px'
       } as React.CSSProperties}
@@ -139,18 +137,10 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                 </span>
               </div>
 
-              {/* Animated Lamp Indicator with Gradient Glow */}
+              {/* Instant Lamp Indicator with Gradient Glow */}
               {isActive && (
-                <motion.div
-                  layoutId="lamp"
+                <div
                   className="absolute inset-0 w-full -z-10"
-                  initial={false}
-                  transition={{
-                    type: "spring",
-                    stiffness: isMobile ? 150 : 350,
-                    damping: isMobile ? 40 : 25,
-                    mass: isMobile ? 2.0 : 0.8
-                  }}
                   style={{
                     background: item.gradient
                   }}
@@ -182,7 +172,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                       }}
                     />
                   </div>
-                </motion.div>
+                </div>
               )}
             </button>
           )
