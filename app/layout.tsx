@@ -76,20 +76,49 @@ export default function RootLayout({
         <style dangerouslySetInnerHTML={{
           __html: `
             /* Critical CSS for initial render */
+            html, body {
+              height: 100%;
+              margin: 0;
+              padding: 0;
+              overflow: hidden;
+            }
+            
             body { 
               font-family: ${inter.style.fontFamily}, system-ui, -apple-system, sans-serif;
               background: #0a0a0a;
-              min-height: 100vh;
               background-image: 
                 radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
                 radial-gradient(circle at 40% 80%, rgba(120, 200, 255, 0.15) 0%, transparent 50%);
               background-attachment: fixed;
-              margin: 0;
-              padding: 0;
               overflow-x: hidden;
               color: #ffffff;
             }
+            
+            .app-wrapper {
+              display: flex;
+              flex-direction: column;
+              height: 100vh;
+              overflow: hidden;
+            }
+            
+            .app-content {
+              flex: 1 1 auto;
+              overflow-y: auto;
+              -webkit-overflow-scrolling: touch;
+              padding-bottom: calc(72px + env(safe-area-inset-bottom));
+              box-sizing: border-box;
+            }
+            
+            .bottom-nav {
+              flex: 0 0 auto;
+              height: 72px;
+              z-index: 999;
+              border-top: 1px solid rgba(255,255,255,0.1);
+              background: rgba(20,20,20,0.95);
+              backdrop-filter: blur(12px);
+            }
+            
             /* Prevent layout shift */
             .loading-placeholder {
               min-height: 100vh;

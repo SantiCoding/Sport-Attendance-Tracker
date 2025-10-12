@@ -2122,7 +2122,8 @@ export default function TennisTracker() {
   // Auto-start for returning users (no loading screen needed)
 
   return (
-    <div className="min-h-screen animate-fade-in-up">
+    <div className="app-wrapper">
+      <main className="app-content animate-fade-in-up">
       {/* Error Banner */}
       {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') && (
         <div className="p-2 sm:p-4">
@@ -4089,11 +4090,12 @@ export default function TennisTracker() {
         </DialogContent>
       </Dialog>
 
-      {/* Floating Bottom Navigation */}
-      <MenuBar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
       {/* Performance Monitor - Development Only */}
       <PerformanceMonitor />
+      </main>
+      
+      {/* Bottom Navigation */}
+      <MenuBar activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   )
 }

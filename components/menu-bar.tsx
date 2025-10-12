@@ -76,30 +76,11 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Update navigation height dynamically and ensure proper positioning
-  useEffect(() => {
-    function updateNavHeight() {
-      const nav = document.querySelector('.navbar')
-      if (!nav) return
-      const h = Math.round(nav.getBoundingClientRect().height)
-      document.documentElement.style.setProperty('--nav-height', `${h}px`)
-    }
-
-    // Update height on load, resize, and after a short delay for async fonts/assets
-    window.addEventListener('load', updateNavHeight)
-    window.addEventListener('resize', updateNavHeight)
-    setTimeout(updateNavHeight, 100) // safety for async fonts/assets
-
-    return () => {
-      window.removeEventListener('load', updateNavHeight)
-      window.removeEventListener('resize', updateNavHeight)
-    }
-  }, [])
 
   return (
-    <div
+    <nav
       data-nav="bottom"
-      className="navbar"
+      className="bottom-nav"
       style={{
         // Add safe area padding for mobile
         paddingBottom: isMobile ? 'env(safe-area-inset-bottom, 0px)' : '0px'
@@ -183,7 +164,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
           )
         })}
       </div>
-    </div>
+    </nav>
   )
 }
 
