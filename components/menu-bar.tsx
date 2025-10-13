@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, memo } from "react"
 import { motion } from "framer-motion"
 import { Users, CalendarDays, Search, Clock, BarChart3 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -63,7 +63,7 @@ interface MenuBarProps {
   setActiveTab: (tab: string) => void
 }
 
-export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
+const MenuBar = memo(function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -75,6 +75,10 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize)
   }, [])
+
+  const handleTabClick = useCallback((href: string) => {
+    setActiveTab(href)
+  }, [setActiveTab])
 
 
   return (
@@ -93,7 +97,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
           return (
                      <button
                        key={item.href}
-                       onClick={() => setActiveTab(item.href)}
+                       onClick={() => handleTabClick(item.href)}
                        className={cn(
                          "tab relative cursor-pointer text-sm font-semibold px-2 py-2 flex-1",
                          "text-white/80 hover:text-white",
@@ -128,7 +132,10 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
                              mass: 0.8
                            }}
                            style={{
-                             background: item.gradient
+                             background: item.gradient,
+                             willChange: 'transform, opacity',
+                             transform: 'translateZ(0)',
+                             backfaceVisibility: 'hidden'
                            }}
                          >
                            {/* Top indicator bar with gradient glow */}
@@ -166,5 +173,7 @@ export function MenuBar({ activeTab, setActiveTab }: MenuBarProps) {
       </div>
     </nav>
   )
-}
+})
+
+export { MenuBar }
 
