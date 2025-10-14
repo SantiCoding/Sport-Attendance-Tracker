@@ -123,45 +123,50 @@ const MenuBar = memo(function MenuBar({ activeTab, setActiveTab }: MenuBarProps)
                        {isActive && (
                          <motion.div
                            layoutId="lamp"
-                           className="absolute inset-0 w-full -z-10"
-                           initial={false}
-                          transition={{
-                            type: "spring",
-                            stiffness: 400,
-                            damping: 25,
-                            mass: 0.6
-                          }}
+                           className="absolute inset-0 w-full"
                            style={{
+                             zIndex: -1,
                              background: item.gradient,
                              willChange: 'transform, opacity',
                              transform: 'translateZ(0)',
                              backfaceVisibility: 'hidden'
+                           }}
+                           initial={false}
+                           transition={{
+                             type: "spring",
+                             stiffness: 400,
+                             damping: 25,
+                             mass: 0.6
                            }}
                          >
                            {/* Top indicator bar with gradient glow */}
                            <div
                              className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1"
                              style={{
-                               background: `linear-gradient(90deg, ${item.color}40, ${item.color}80, ${item.color}40)`
+                               background: `linear-gradient(90deg, ${item.color}40, ${item.color}80, ${item.color}40)`,
+                               zIndex: 1
                              }}
                            >
                              {/* Gradient blur effects */}
                              <div
                                className="absolute w-12 h-6 rounded-full blur-md -top-2 -left-2"
                                style={{
-                                 background: `${item.color}20`
+                                 background: `${item.color}20`,
+                                 zIndex: 0
                                }}
                              />
                              <div
                                className="absolute w-8 h-6 rounded-full blur-md -top-1"
                                style={{
-                                 background: `${item.color}20`
+                                 background: `${item.color}20`,
+                                 zIndex: 0
                                }}
                              />
                              <div
                                className="absolute w-4 h-4 rounded-full blur-sm top-0 left-2"
                                style={{
-                                 background: `${item.color}20`
+                                 background: `${item.color}20`,
+                                 zIndex: 0
                                }}
                              />
                            </div>

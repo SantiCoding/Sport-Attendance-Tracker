@@ -1973,21 +1973,38 @@ const TennisTracker = React.memo(function TennisTracker() {
       cancelledSessions: studentAttendance.filter((r) => (r as any).status === "cancelled").length,
     }
 
-    const dataStr = JSON.stringify(exportData, null, 2)
-    const dataBlob = new Blob([dataStr], { 
-      type: "application/octet-stream" 
-    })
-    const url = URL.createObjectURL(dataBlob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `${student.name.replace(/\s+/g, "_")}_attendance_data.json`
-    link.style.display = "none"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    try {
+      const dataStr = JSON.stringify(exportData, null, 2)
+      const dataBlob = new Blob([dataStr], { 
+        type: "application/json;charset=utf-8" 
+      })
+      const url = URL.createObjectURL(dataBlob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `${student.name.replace(/\s+/g, "_")}_attendance_data.json`
+      link.style.display = "none"
+      link.setAttribute("download", `${student.name.replace(/\s+/g, "_")}_attendance_data.json`)
+      document.body.appendChild(link)
+      
+      // Force click on mobile
+      const clickEvent = new MouseEvent('click', {
+        view: window,
+        bubbles: true,
+        cancelable: true
+      })
+      link.dispatchEvent(clickEvent)
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      }, 100)
 
-    toast(`📊 Exported data for ${student.name}`, "success")
+      toast(`📊 Exported data for ${student.name}`, "success")
+    } catch (error) {
+      console.error('Download failed:', error)
+      toast(`❌ Failed to export data for ${student.name}`, "error")
+    }
   }
 
   const completeMakeupSession = (makeupId: string) => {
