@@ -95,12 +95,27 @@ const WeeklyHours = memo(function WeeklyHours({ profileData, updateProfile }: We
       const key = `${record.date}_${record.groupId}`
       if (!groups[key]) {
         const group = profileData.groups.find((g: any) => g.id === record.groupId)
+        
+        // Calculate actual session duration including time adjustments
+        let baseDuration = 1.5 // Default base duration
+        let timeAdjustment = 0
+        
+        // Check if this record has time adjustment data
+        if (record.timeAdjustmentAmount && record.timeAdjustmentType) {
+          const adjustmentAmount = parseFloat(record.timeAdjustmentAmount) || 0
+          timeAdjustment = record.timeAdjustmentType === "more" ? adjustmentAmount : -adjustmentAmount
+        }
+        
+        const actualDuration = baseDuration + (timeAdjustment / 60) // Convert minutes to hours
+        
         groups[key] = {
           id: key,
           date: record.date,
           groupName: group?.name || "Unknown Group",
           students: [],
-          duration: 1.5 // Default duration, could be made configurable
+          duration: actualDuration,
+          timeAdjustment: timeAdjustment,
+          timeAdjustmentReason: record.timeAdjustmentReason
         }
       }
       
@@ -212,20 +227,21 @@ const WeeklyHours = memo(function WeeklyHours({ profileData, updateProfile }: We
   const exportWeekCSV = useCallback((week: WeeklyData) => {
     try {
       const csvData = [
-        ["Student", "Group", "Date", "Time", "Status", "Duration"],
+        ["Student", "Group", "Date", "Status", "Duration", "Time Adjustment", "Reason"],
         ...week.sessions.flatMap(session => 
           session.students.map(student => [
             student.name,
             session.groupName,
             session.date,
-            session.time || "N/A",
             student.isMakeup ? "Makeup" : student.status,
-            `${session.duration}h`
+            formatHours(session.duration),
+            session.timeAdjustment !== 0 ? `${session.timeAdjustment > 0 ? '+' : ''}${session.timeAdjustment}min` : "",
+            session.timeAdjustmentReason || ""
           ])
         ),
-        ["", "", "", "", "", ""],
-        ["Total Hours", "", "", "", "", `${week.totalHours}h`],
-        ["Total Sessions", "", "", "", "", week.totalSessions.toString()]
+        ["", "", "", "", "", "", ""],
+        ["Total Hours", "", "", "", formatHours(week.totalHours), "", ""],
+        ["Total Sessions", "", "", "", week.totalSessions.toString(), "", ""]
       ]
 
       const csvContent = csvData
@@ -369,8 +385,18 @@ const WeeklyHours = memo(function WeeklyHours({ profileData, updateProfile }: We
                           {session.groupName}
                         </h4>
                         <p className="text-sm text-secondary-white">
-                          {new Date(session.date).toLocaleDateString()} • {session.duration}h
+                          {new Date(session.date).toLocaleDateString()} • {formatHours(session.duration)}
+                          {session.timeAdjustment !== 0 && (
+                            <span className="text-blue-400 ml-2">
+                              ({session.timeAdjustment > 0 ? '+' : ''}{session.timeAdjustment}min)
+                            </span>
+                          )}
                         </p>
+                        {session.timeAdjustmentReason && (
+                          <p className="text-xs text-blue-300 mt-1">
+                            {session.timeAdjustmentReason}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
