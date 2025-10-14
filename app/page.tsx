@@ -1047,6 +1047,39 @@ const TennisTracker = React.memo(function TennisTracker() {
       newAttendanceRecords.push(attendanceRecord)
 
       if (status === "present") {
+        // Check if this student is attending a different group (makeup session)
+        const studentGroups = currentProfile.groups.filter(g => g.studentIds.includes(studentId))
+        const isMakeupSession = !studentGroups.some(g => g.id === selectedGroupId)
+        
+        if (isMakeupSession) {
+          // This is a makeup session - complete any pending makeup
+          const pendingMakeup = currentProfile.makeupSessions?.find(
+            m => m.studentId === studentId && m.status === "pending"
+          )
+          
+          if (pendingMakeup) {
+            // Mark makeup as completed
+            const updatedMakeupSessions = currentProfile.makeupSessions?.map(m =>
+              m.id === pendingMakeup.id ? { ...m, status: "completed" as const, completedDate: new Date().toISOString() } : m
+            ) || []
+            
+            // Update student makeup count
+            const updatedStudents = currentProfile.students.map(s =>
+              s.id === studentId ? { ...s, makeupSessions: Math.max(0, s.makeupSessions - 1) } : s
+            )
+            
+            // Mark attendance record as makeup
+            attendanceRecord.isMakeupSession = true
+            attendanceRecord.originalGroupId = pendingMakeup.originalGroupId
+            
+            updateProfile({
+              ...currentProfile,
+              students: updatedStudents,
+              makeupSessions: updatedMakeupSessions
+            })
+          }
+        }
+        
         updateStudentSessionCount(studentId, "attended")
       } else if (status === "absent") {
         const makeupSession: MakeupSession = {
@@ -1955,26 +1988,48 @@ const TennisTracker = React.memo(function TennisTracker() {
 
     const studentAttendance = (currentProfile.attendanceRecords ?? []).filter((record) => record.studentId === student.id)
 
-    // Create CSV data
+    // Create CSV data in session reports format
     const csvData = [
-      ["Student Name", "Date", "Group", "Status", "Time Adjustment", "Notes"],
-      ...studentAttendance.map((record) => [
-        student.name,
-        record.date,
-        currentProfile.groups.find((g) => g.id === record.groupId)?.name || "Unknown Group",
-        record.status,
-        (record as any).timeAdjustment || 0,
-        record.notes || ""
-      ]),
-      ["", "", "", "", "", ""],
-      ["Total Sessions", studentAttendance.length, "", "", "", ""],
-      ["Present Sessions", studentAttendance.filter((r) => r.status === "present").length, "", "", "", ""],
-      ["Absent Sessions", studentAttendance.filter((r) => r.status === "absent").length, "", "", "", ""],
-      ["Cancelled Sessions", studentAttendance.filter((r) => (r as any).status === "cancelled").length, "", "", "", ""],
-      ["Prepaid Sessions", student.prepaidSessions, "", "", "", ""],
-      ["Remaining Sessions", student.remainingSessions, "", "", "", ""],
-      ["Makeup Sessions", student.makeupSessions, "", "", "", ""],
-      ["Notes", student.notes || "", "", "", "", ""]
+      ["Date", "Student", "Group", "Status", "Duration", "Time Adjustment", "Reason", "Notes"],
+      ...studentAttendance.map((record) => {
+        const group = currentProfile.groups.find((g) => g.id === record.groupId)
+        const timeAdjustment = (record as any).timeAdjustmentAmount || 0
+        const timeAdjustmentType = (record as any).timeAdjustmentType || ""
+        const timeAdjustmentReason = (record as any).timeAdjustmentReason || ""
+        
+        // Calculate actual duration
+        let baseDuration = 1.5 // Default base duration
+        let adjustmentMinutes = 0
+        if (timeAdjustment && timeAdjustmentType) {
+          adjustmentMinutes = timeAdjustmentType === "more" ? timeAdjustment : -timeAdjustment
+        }
+        const actualDuration = baseDuration + (adjustmentMinutes / 60)
+        
+        // Format duration
+        const wholeHours = Math.floor(actualDuration)
+        const minutes = Math.round((actualDuration - wholeHours) * 60)
+        const durationText = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`
+        
+        return [
+          record.date,
+          student.name,
+          group?.name || "Unknown Group",
+          record.status,
+          durationText,
+          timeAdjustment ? `${timeAdjustmentType === "more" ? "+" : "-"}${timeAdjustment}min` : "",
+          timeAdjustmentReason,
+          record.notes || ""
+        ]
+      }),
+      ["", "", "", "", "", "", "", ""],
+      ["Total Sessions", studentAttendance.length, "", "", "", "", "", ""],
+      ["Present Sessions", studentAttendance.filter((r) => r.status === "present").length, "", "", "", "", "", ""],
+      ["Absent Sessions", studentAttendance.filter((r) => r.status === "absent").length, "", "", "", "", "", ""],
+      ["Cancelled Sessions", studentAttendance.filter((r) => (r as any).status === "cancelled").length, "", "", "", "", "", ""],
+      ["Prepaid Sessions", student.prepaidSessions, "", "", "", "", "", ""],
+      ["Remaining Sessions", student.remainingSessions, "", "", "", "", "", ""],
+      ["Makeup Sessions", student.makeupSessions, "", "", "", "", "", ""],
+      ["Notes", student.notes || "", "", "", "", "", "", ""]
     ]
 
     try {
@@ -2636,6 +2691,35 @@ const TennisTracker = React.memo(function TennisTracker() {
                           </div>
                         </div>
                       )}
+
+                      {/* Session Duration Display */}
+                      <div className="mt-4 p-3 bg-blue-500/10 border border-blue-400/30 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-secondary-white text-sm">Session Duration:</span>
+                          <span className="text-primary-white font-medium">
+                            {(() => {
+                              let baseDuration = 1.5 // Default base duration
+                              let adjustmentMinutes = 0
+                              
+                              if (timeAdjustmentNeeded && timeAdjustmentAmount && timeAdjustmentType) {
+                                const amount = parseFloat(timeAdjustmentAmount.replace(/[^\d]/g, '')) || 0
+                                adjustmentMinutes = timeAdjustmentType === "more" ? amount : -amount
+                              }
+                              
+                              const totalDuration = baseDuration + (adjustmentMinutes / 60)
+                              const wholeHours = Math.floor(totalDuration)
+                              const minutes = Math.round((totalDuration - wholeHours) * 60)
+                              
+                              return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`
+                            })()}
+                          </span>
+                        </div>
+                        {timeAdjustmentNeeded && timeAdjustmentAmount && (
+                          <div className="text-xs text-blue-300 mt-1">
+                            Base: 1h 30m • Adjustment: {timeAdjustmentType === "more" ? "+" : "-"}{timeAdjustmentAmount}
+                          </div>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
 
@@ -2981,6 +3065,35 @@ const TennisTracker = React.memo(function TennisTracker() {
                         </div>
                       </div>
                     )}
+
+                    {/* Session Duration Display */}
+                    <div className="mt-4 p-3 bg-blue-500/10 border border-blue-400/30 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-secondary-white text-sm">Session Duration:</span>
+                        <span className="text-primary-white font-medium">
+                          {(() => {
+                            let baseDuration = 1.5 // Default base duration
+                            let adjustmentMinutes = 0
+                            
+                            if (smartAttendanceTimeAdjustment && smartAttendanceTimeAdjustmentAmount && smartAttendanceTimeAdjustmentType) {
+                              const amount = parseFloat(smartAttendanceTimeAdjustmentAmount.replace(/[^\d]/g, '')) || 0
+                              adjustmentMinutes = smartAttendanceTimeAdjustmentType === "more" ? amount : -amount
+                            }
+                            
+                            const totalDuration = baseDuration + (adjustmentMinutes / 60)
+                            const wholeHours = Math.floor(totalDuration)
+                            const minutes = Math.round((totalDuration - wholeHours) * 60)
+                            
+                            return minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`
+                          })()}
+                        </span>
+                      </div>
+                      {smartAttendanceTimeAdjustment && smartAttendanceTimeAdjustmentAmount && (
+                        <div className="text-xs text-blue-300 mt-1">
+                          Base: 1h 30m • Adjustment: {smartAttendanceTimeAdjustmentType === "more" ? "+" : "-"}{smartAttendanceTimeAdjustmentAmount}
+                        </div>
+                      )}
+                    </div>
 
                     <div>
                       <Label className="text-secondary-white">Enter Present Students</Label>
@@ -3912,11 +4025,10 @@ const TennisTracker = React.memo(function TennisTracker() {
                                           const currentGroup = currentProfile.groups.find((g) => g.id === session.groupId)
                                           const recordGroup = currentProfile.groups.find((g) => g.id === record.groupId)
                                           
-                                          // Check if this is a makeup session (student attending different group)
+                                          // Check if this is a makeup session
                                           const isMakeupSession = record.status === "present" && 
-                                            recordGroup && 
-                                            currentGroup && 
-                                            recordGroup.id !== currentGroup.id
+                                            ((record as any).isMakeupSession || 
+                                             (recordGroup && currentGroup && recordGroup.id !== currentGroup.id))
                                           
                                           return (
                                             <div
