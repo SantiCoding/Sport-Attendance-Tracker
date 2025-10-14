@@ -225,7 +225,7 @@ const mergeProfiles = (localProfiles: CoachProfile[], cloudProfiles: CoachProfil
   return mergedProfiles
 }
 
-export default function TennisTracker() {
+const TennisTracker = React.memo(function TennisTracker() {
   // Debug log to verify the latest changes are loaded
   console.log("🎾 Tennis Tracker - VERSION 3.0 - REVERTED TO ORIGINAL");
   console.log("🎾 Build timestamp:", new Date().toISOString());
@@ -4098,4 +4098,6 @@ export default function TennisTracker() {
       <MenuBar activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   )
-}
+})
+
+export default TennisTracker

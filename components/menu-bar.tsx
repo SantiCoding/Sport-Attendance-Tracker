@@ -77,7 +77,7 @@ const MenuBar = memo(function MenuBar({ activeTab, setActiveTab }: MenuBarProps)
   }, [])
 
   const handleTabClick = useCallback((href: string) => {
-    setActiveTab(href)
+    requestAnimationFrame(() => setActiveTab(href))
   }, [setActiveTab])
 
 
