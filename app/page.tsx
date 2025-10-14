@@ -56,6 +56,7 @@ import { useToast } from "@/toast"
 import { useAuth } from "@/use-auth"
 import { DataManagementWithSuspense } from "@/components/lazy-components"
 import { PerformanceMonitor } from "@/components/performance-monitor"
+import { WeeklyHours } from "@/components/weekly-hours"
 import { motion } from "framer-motion"
 // Local storage functions - simplified for guest mode only
 const loadLocalStore = (): CoachProfile[] => {
@@ -1954,36 +1955,42 @@ const TennisTracker = React.memo(function TennisTracker() {
 
     const studentAttendance = (currentProfile.attendanceRecords ?? []).filter((record) => record.studentId === student.id)
 
-    const exportData = {
-      studentName: student.name,
-      studentId: student.id,
-      notes: student.notes,
-      prepaidSessions: student.prepaidSessions,
-      remainingSessions: student.remainingSessions,
-      makeupSessions: student.makeupSessions,
-      attendanceHistory: studentAttendance.map((record) => ({
-        date: record.date,
-        status: record.status as any,
-        groupName: currentProfile.groups.find((g) => g.id === record.groupId)?.name || "Unknown Group",
-        timeAdjustment: (record as any).timeAdjustment || 0,
-      })),
-      totalSessions: studentAttendance.length,
-      presentSessions: studentAttendance.filter((r) => r.status === "present").length,
-      absentSessions: studentAttendance.filter((r) => r.status === "absent").length,
-      cancelledSessions: studentAttendance.filter((r) => (r as any).status === "cancelled").length,
-    }
+    // Create CSV data
+    const csvData = [
+      ["Student Name", "Date", "Group", "Status", "Time Adjustment", "Notes"],
+      ...studentAttendance.map((record) => [
+        student.name,
+        record.date,
+        currentProfile.groups.find((g) => g.id === record.groupId)?.name || "Unknown Group",
+        record.status,
+        (record as any).timeAdjustment || 0,
+        record.notes || ""
+      ]),
+      ["", "", "", "", "", ""],
+      ["Total Sessions", studentAttendance.length, "", "", "", ""],
+      ["Present Sessions", studentAttendance.filter((r) => r.status === "present").length, "", "", "", ""],
+      ["Absent Sessions", studentAttendance.filter((r) => r.status === "absent").length, "", "", "", ""],
+      ["Cancelled Sessions", studentAttendance.filter((r) => (r as any).status === "cancelled").length, "", "", "", ""],
+      ["Prepaid Sessions", student.prepaidSessions, "", "", "", ""],
+      ["Remaining Sessions", student.remainingSessions, "", "", "", ""],
+      ["Makeup Sessions", student.makeupSessions, "", "", "", ""],
+      ["Notes", student.notes || "", "", "", "", ""]
+    ]
 
     try {
-      const dataStr = JSON.stringify(exportData, null, 2)
-      const dataBlob = new Blob([dataStr], { 
-        type: "application/json;charset=utf-8" 
+      const csvContent = csvData
+        .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
+        .join("\n")
+
+      const dataBlob = new Blob([csvContent], { 
+        type: "text/csv;charset=utf-8" 
       })
       const url = URL.createObjectURL(dataBlob)
       const link = document.createElement("a")
       link.href = url
-      link.download = `${student.name.replace(/\s+/g, "_")}_attendance_data.json`
+      link.download = `${student.name.replace(/\s+/g, "_")}_attendance_data.csv`
       link.style.display = "none"
-      link.setAttribute("download", `${student.name.replace(/\s+/g, "_")}_attendance_data.json`)
+      link.setAttribute("download", `${student.name.replace(/\s+/g, "_")}_attendance_data.csv`)
       document.body.appendChild(link)
       
       // Force click on mobile
@@ -2000,7 +2007,7 @@ const TennisTracker = React.memo(function TennisTracker() {
         URL.revokeObjectURL(url)
       }, 100)
 
-      toast(`📊 Exported data for ${student.name}`, "success")
+      toast(`📊 Exported CSV data for ${student.name}`, "success")
     } catch (error) {
       console.error('Download failed:', error)
       toast(`❌ Failed to export data for ${student.name}`, "error")
@@ -2202,6 +2209,12 @@ const TennisTracker = React.memo(function TennisTracker() {
                         <Users className="h-3 w-3" />
                         {currentProfile.groups.length} Groups
                       </span>
+                    </div>
+                    <div className="mt-2">
+                      <WeeklyHours 
+                        profileData={currentProfile} 
+                        updateProfile={updateProfile} 
+                      />
                     </div>
                   </div>
                 </div>
@@ -3896,17 +3909,40 @@ const TennisTracker = React.memo(function TennisTracker() {
                                       <div className="space-y-2">
                                         {session.records.map((record: any, recordIndex: number) => {
                                           const student = currentProfile.students.find((s) => s.id === record.studentId)
+                                          const currentGroup = currentProfile.groups.find((g) => g.id === session.groupId)
+                                          const recordGroup = currentProfile.groups.find((g) => g.id === record.groupId)
+                                          
+                                          // Check if this is a makeup session (student attending different group)
+                                          const isMakeupSession = record.status === "present" && 
+                                            recordGroup && 
+                                            currentGroup && 
+                                            recordGroup.id !== currentGroup.id
+                                          
                                           return (
                                             <div
                                               key={recordIndex}
-                                              className="flex justify-between items-center bg-white/5 rounded p-2"
+                                              className={cn(
+                                                "flex justify-between items-center rounded p-2",
+                                                isMakeupSession 
+                                                  ? "bg-purple-500/10 border border-purple-400/30" 
+                                                  : "bg-white/5"
+                                              )}
                                             >
-                                              <span className="text-primary-white">{student?.name || "Unknown"}</span>
+                                              <div className="flex flex-col">
+                                                <span className="text-primary-white">{student?.name || "Unknown"}</span>
+                                                {isMakeupSession && (
+                                                  <span className="text-xs text-purple-300">
+                                                    Makeup from {recordGroup?.name}
+                                                  </span>
+                                                )}
+                                              </div>
                                               <div className="flex flex-col items-end gap-1">
                                                 <Badge
                                                   className={
                                                     record.status === "present"
-                                                      ? "bg-green-500/20 text-green-300 border-green-400/30"
+                                                      ? isMakeupSession
+                                                        ? "bg-purple-500/20 text-purple-300 border-purple-400/30"
+                                                        : "bg-green-500/20 text-green-300 border-green-400/30"
                                                       : record.status === "absent"
                                                         ? "bg-red-500/20 text-red-300 border-red-400/30"
                                                         : record.status === "canceled"
@@ -3914,7 +3950,7 @@ const TennisTracker = React.memo(function TennisTracker() {
                                                           : "bg-gray-500/20 text-gray-300 border-gray-400/30"
                                                   }
                                                 >
-                                                  {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                                                  {isMakeupSession ? "Makeup" : record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                                                 </Badge>
                                                 {record.timeAdjustmentAmount && record.timeAdjustmentType && (
                                                   <div className="text-xs text-blue-400 bg-blue-500/10 rounded px-2 py-1">
