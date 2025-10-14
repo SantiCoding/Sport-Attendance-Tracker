@@ -77,7 +77,7 @@ const MenuBar = memo(function MenuBar({ activeTab, setActiveTab }: MenuBarProps)
   }, [])
 
   const handleTabClick = useCallback((href: string) => {
-    requestAnimationFrame(() => setActiveTab(href))
+    setActiveTab(href)
   }, [setActiveTab])
 
 
@@ -125,12 +125,12 @@ const MenuBar = memo(function MenuBar({ activeTab, setActiveTab }: MenuBarProps)
                            layoutId="lamp"
                            className="absolute inset-0 w-full -z-10"
                            initial={false}
-                           transition={{
-                             type: "spring",
-                             stiffness: 300,
-                             damping: 30,
-                             mass: 0.8
-                           }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 25,
+                            mass: 0.6
+                          }}
                            style={{
                              background: item.gradient,
                              willChange: 'transform, opacity',

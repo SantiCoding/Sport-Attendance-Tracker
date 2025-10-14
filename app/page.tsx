@@ -1974,11 +1974,14 @@ const TennisTracker = React.memo(function TennisTracker() {
     }
 
     const dataStr = JSON.stringify(exportData, null, 2)
-    const dataBlob = new Blob([dataStr], { type: "application/json" })
+    const dataBlob = new Blob([dataStr], { 
+      type: "application/octet-stream" 
+    })
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement("a")
     link.href = url
     link.download = `${student.name.replace(/\s+/g, "_")}_attendance_data.json`
+    link.style.display = "none"
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
