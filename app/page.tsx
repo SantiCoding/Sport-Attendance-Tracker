@@ -137,6 +137,8 @@ interface AttendanceRecord {
   timeAdjustmentAmount?: string
   timeAdjustmentType?: "more" | "less"
   timeAdjustmentReason?: string
+  isMakeupSession?: boolean
+  originalGroupId?: string
 }
 
 interface MakeupSession {
@@ -1696,18 +1698,57 @@ const TennisTracker = React.memo(function TennisTracker() {
     }
 
     const csvData = []
-    csvData.push(["Date", "Student", "Group", "Status", "Notes"])
+    csvData.push(["Date", "Student", "Group", "Status", "Duration", "Time Adjustment", "Reason", "Notes", "Makeup"])
+    
     monthlyData.records.forEach((record) => {
       const student = currentProfile.students.find((s) => s.id === record.studentId)
       const group = currentProfile.groups.find((g) => g.id === record.groupId)
+      const recordGroup = currentProfile.groups.find((g) => g.id === record.groupId)
+      
+      // Check if this is a makeup session
+      const isMakeupSession = record.status === "present" && 
+        ((record as any).isMakeupSession || 
+         (recordGroup && group && recordGroup.id !== group.id))
+      
+      // Calculate actual duration
+      let baseDuration = 1.5 // Default base duration
+      let timeAdjustment = 0
+      let timeAdjustmentReason = ""
+      
+      if (record.timeAdjustmentAmount && record.timeAdjustmentType) {
+        const adjustmentAmount = parseFloat(record.timeAdjustmentAmount) || 0
+        timeAdjustment = record.timeAdjustmentType === "more" ? adjustmentAmount : -adjustmentAmount
+        timeAdjustmentReason = record.timeAdjustmentReason || ""
+      }
+      
+      const actualDuration = baseDuration + (timeAdjustment / 60)
+      const wholeHours = Math.floor(actualDuration)
+      const minutes = Math.round((actualDuration - wholeHours) * 60)
+      const durationText = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`
+      
       csvData.push([
         record.date,
         student?.name || "Unknown",
         group?.name || "Unknown",
-        record.status,
+        isMakeupSession ? "Makeup" : record.status,
+        durationText,
+        timeAdjustment !== 0 ? `${timeAdjustment > 0 ? "+" : ""}${timeAdjustment}min` : "",
+        timeAdjustmentReason,
         record.notes || "",
+        isMakeupSession ? `Yes (from ${recordGroup?.name || "Unknown"})` : "No"
       ])
     })
+
+    // Add summary rows
+    csvData.push(["", "", "", "", "", "", "", "", ""])
+    csvData.push(["Total Records", monthlyData.records.length, "", "", "", "", "", "", ""])
+    csvData.push(["Present", monthlyData.records.filter((r) => r.status === "present").length, "", "", "", "", "", "", ""])
+    csvData.push(["Absent", monthlyData.records.filter((r) => r.status === "absent").length, "", "", "", "", "", "", ""])
+    csvData.push(["Makeup Sessions", monthlyData.records.filter((r) => {
+      const group = currentProfile.groups.find((g) => g.id === r.groupId)
+      const recordGroup = currentProfile.groups.find((g) => g.id === r.groupId)
+      return r.status === "present" && ((r as any).isMakeupSession || (recordGroup && group && recordGroup.id !== group.id))
+    }).length, "", "", "", "", "", "", ""])
 
     const csvContent = csvData
       .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
@@ -1722,6 +1763,7 @@ const TennisTracker = React.memo(function TennisTracker() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
 
     toast("✅ Report exported successfully", "success")
   }
@@ -1810,23 +1852,60 @@ const TennisTracker = React.memo(function TennisTracker() {
 
     const group = currentProfile.groups.find((g) => g.id === session.groupId)
     const csvData = []
-    csvData.push(["Group Name", "Date", "Time", "Duration", "Student Name", "Status", "Notes", "Time Adjustments"])
+    csvData.push(["Group Name", "Date", "Time", "Student Name", "Status", "Duration", "Time Adjustment", "Reason", "Notes", "Makeup"])
 
     session.records.forEach((record: any) => {
       const student = currentProfile.students.find((s) => s.id === record.studentId)
+      const currentGroup = currentProfile.groups.find((g) => g.id === session.groupId)
+      const recordGroup = currentProfile.groups.find((g) => g.id === record.groupId)
+      
+      // Check if this is a makeup session
+      const isMakeupSession = record.status === "present" && 
+        ((record as any).isMakeupSession || 
+         (recordGroup && currentGroup && recordGroup.id !== currentGroup.id))
+      
+      // Calculate actual duration
+      let baseDuration = 1.5 // Default base duration
+      let timeAdjustment = 0
+      let timeAdjustmentReason = ""
+      
+      if (record.timeAdjustmentAmount && record.timeAdjustmentType) {
+        const adjustmentAmount = parseFloat(record.timeAdjustmentAmount) || 0
+        timeAdjustment = record.timeAdjustmentType === "more" ? adjustmentAmount : -adjustmentAmount
+        timeAdjustmentReason = record.timeAdjustmentReason || ""
+      }
+      
+      const actualDuration = baseDuration + (timeAdjustment / 60)
+      const wholeHours = Math.floor(actualDuration)
+      const minutes = Math.round((actualDuration - wholeHours) * 60)
+      const durationText = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`
+      
       csvData.push([
         session.groupName,
         session.date && !isNaN(new Date(session.date).getTime()) 
           ? format(new Date(session.date), "MMM dd, yyyy")
           : "Invalid Date",
         session.time,
-        "60 minutes", // Default duration - could be made dynamic
         student?.name || "Unknown",
-        record.status,
+        isMakeupSession ? "Makeup" : record.status,
+        durationText,
+        timeAdjustment !== 0 ? `${timeAdjustment > 0 ? "+" : ""}${timeAdjustment}min` : "",
+        timeAdjustmentReason,
         record.notes || "",
-        record.timeAdjustment || "None",
+        isMakeupSession ? `Yes (from ${recordGroup?.name || "Unknown"})` : "No"
       ])
     })
+
+    // Add summary row
+    csvData.push(["", "", "", "", "", "", "", "", "", ""])
+    csvData.push(["Total Students", session.records.length, "", "", "", "", "", "", "", ""])
+    csvData.push(["Present", session.records.filter((r: any) => r.status === "present").length, "", "", "", "", "", "", "", ""])
+    csvData.push(["Absent", session.records.filter((r: any) => r.status === "absent").length, "", "", "", "", "", "", "", ""])
+    csvData.push(["Makeup Sessions", session.records.filter((r: any) => {
+      const currentGroup = currentProfile.groups.find((g) => g.id === session.groupId)
+      const recordGroup = currentProfile.groups.find((g) => g.id === r.groupId)
+      return r.status === "present" && ((r as any).isMakeupSession || (recordGroup && currentGroup && recordGroup.id !== currentGroup.id))
+    }).length, "", "", "", "", "", "", "", ""])
 
     const csvContent = csvData
       .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
@@ -1841,27 +1920,66 @@ const TennisTracker = React.memo(function TennisTracker() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
 
     toast("✅ Session data exported successfully", "success")
   }
 
   const exportArchivedTerm = (term: any) => {
     const csvData = []
-    csvData.push(["Term", "Date", "Time", "Group", "Student", "Status", "Notes"])
+    csvData.push(["Term", "Date", "Time", "Group", "Student", "Status", "Duration", "Time Adjustment", "Reason", "Notes", "Makeup"])
 
     term.attendanceRecords.forEach((record: any) => {
       const student = term.studentSnapshot.find((s: any) => s.id === record.studentId)
       const group = term.groupSnapshot.find((g: any) => g.id === record.groupId)
+      const recordGroup = term.groupSnapshot.find((g: any) => g.id === record.groupId)
+      
+      // Check if this is a makeup session
+      const isMakeupSession = record.status === "present" && 
+        ((record as any).isMakeupSession || 
+         (recordGroup && group && recordGroup.id !== group.id))
+      
+      // Calculate actual duration
+      let baseDuration = 1.5 // Default base duration
+      let timeAdjustment = 0
+      let timeAdjustmentReason = ""
+      
+      if (record.timeAdjustmentAmount && record.timeAdjustmentType) {
+        const adjustmentAmount = parseFloat(record.timeAdjustmentAmount) || 0
+        timeAdjustment = record.timeAdjustmentType === "more" ? adjustmentAmount : -adjustmentAmount
+        timeAdjustmentReason = record.timeAdjustmentReason || ""
+      }
+      
+      const actualDuration = baseDuration + (timeAdjustment / 60)
+      const wholeHours = Math.floor(actualDuration)
+      const minutes = Math.round((actualDuration - wholeHours) * 60)
+      const durationText = minutes > 0 ? `${wholeHours}h ${minutes}m` : `${wholeHours}h`
+      
       csvData.push([
         term.name,
         record.date,
         record.time,
         group?.name || "Unknown",
         student?.name || "Unknown",
-        record.status,
+        isMakeupSession ? "Makeup" : record.status,
+        durationText,
+        timeAdjustment !== 0 ? `${timeAdjustment > 0 ? "+" : ""}${timeAdjustment}min` : "",
+        timeAdjustmentReason,
         record.notes || "",
+        isMakeupSession ? `Yes (from ${recordGroup?.name || "Unknown"})` : "No"
       ])
     })
+
+    // Add summary rows
+    csvData.push(["", "", "", "", "", "", "", "", "", "", ""])
+    csvData.push(["Total Records", term.attendanceRecords.length, "", "", "", "", "", "", "", "", ""])
+    csvData.push(["Present", term.attendanceRecords.filter((r: any) => r.status === "present").length, "", "", "", "", "", "", "", "", ""])
+    csvData.push(["Absent", term.attendanceRecords.filter((r: any) => r.status === "absent").length, "", "", "", "", "", "", "", "", ""])
+    csvData.push(["Makeup Sessions", term.attendanceRecords.filter((r: any) => {
+      const group = term.groupSnapshot.find((g: any) => g.id === r.groupId)
+      const recordGroup = term.groupSnapshot.find((g: any) => g.id === r.groupId)
+      return r.status === "present" && ((r as any).isMakeupSession || (recordGroup && group && recordGroup.id !== group.id))
+    }).length, "", "", "", "", "", "", "", "", ""])
 
     const csvContent = csvData
       .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
@@ -1876,6 +1994,7 @@ const TennisTracker = React.memo(function TennisTracker() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
 
     toast("✅ Archived term data exported successfully", "success")
   }
