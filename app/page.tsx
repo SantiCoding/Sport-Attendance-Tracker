@@ -58,7 +58,7 @@ import { DataManagementWithSuspense } from "@/components/lazy-components"
 import { PerformanceMonitor } from "@/components/performance-monitor"
 import { WeeklyHours } from "@/components/weekly-hours"
 import { motion } from "framer-motion"
-import { StudentSearchTab } from "@/student-search-tab"
+import { StudentSearchTab } from "@/components/student-search-tab"
 // Local storage functions - simplified for guest mode only
 const loadLocalStore = (): CoachProfile[] => {
   try {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Search, User, Users, Edit, Trash2, Download, CalendarDays, Clock, Archive, CheckSquare, Square, X, BarChart3 } from "lucide-react"
-import { StudentDialog } from "./student-dialog"
+import { StudentDialog } from "@/components/student-dialog"
 import { useToast } from "@/components/toast"
 import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO, startOfDay, endOfDay, addDays, subDays } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -69,7 +69,7 @@ interface StudentSearchTabProps {
   isActive: boolean
 }
 
-export function StudentSearchTab({ profileData, updateProfile, isActive }: StudentSearchTabProps) {
+export function StudentSearchTab({ profileData, updateProfile, isActive }: StudentSearchTabProps): JSX.Element {
   const { toast } = useToast()
   const [viewMode, setViewMode] = useState<"students" | "sessions">("students")
   
