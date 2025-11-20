@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Search, User, Users, Edit, Trash2, Download, CalendarDays, Clock, Archive, CheckSquare, Square, X, BarChart3 } from "lucide-react"
 import { StudentDialog } from "@/components/student-dialog"
 import { useToast } from "@/toast"
@@ -729,19 +729,19 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
             <>
               {/* Quick Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div className="glass-card p-3">
+                <div className="glass-card p-3 rounded-lg">
                   <p className="text-secondary-white text-sm">Total Sessions</p>
                   <p className="font-semibold text-primary-white text-xl">{organizedSessions.stats.total}</p>
                 </div>
-                <div className="glass-card p-3">
+                <div className="glass-card p-3 rounded-lg">
                   <p className="text-secondary-white text-sm">Present</p>
                   <p className="font-semibold text-green-400 text-xl">{organizedSessions.stats.present}</p>
                 </div>
-                <div className="glass-card p-3">
+                <div className="glass-card p-3 rounded-lg">
                   <p className="text-secondary-white text-sm">Absent</p>
                   <p className="font-semibold text-red-400 text-xl">{organizedSessions.stats.absent}</p>
                 </div>
-                <div className="glass-card p-3">
+                <div className="glass-card p-3 rounded-lg">
                   <p className="text-secondary-white text-sm">Canceled</p>
                   <p className="font-semibold text-yellow-400 text-xl">{organizedSessions.stats.canceled}</p>
                 </div>
@@ -1104,7 +1104,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
                             <div
                               key={record.id}
                               className={cn(
-                                "glass-card p-3 flex items-center gap-3 hover:bg-white/5 transition-colors",
+                                "glass-card p-3 rounded-lg flex items-center gap-3 hover:bg-white/5 transition-colors",
                                 isSelected && "bg-blue-500/20 border-blue-500/50"
                               )}
                             >
@@ -1210,15 +1210,15 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
 
                         {expandedStudents.has(student.id) && (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                            <div className="glass-card p-3">
+                            <div className="glass-card p-3 rounded-lg">
                               <p className="text-secondary-white text-sm">Prepaid Sessions</p>
                               <p className="font-semibold text-primary-white">{student.prepaidSessions}</p>
                             </div>
-                            <div className="glass-card p-3">
+                            <div className="glass-card p-3 rounded-lg">
                               <p className="text-secondary-white text-sm">Remaining Sessions</p>
                               <p className="font-semibold text-primary-white">{student.remainingSessions}</p>
                             </div>
-                            <div className="glass-card p-3">
+                            <div className="glass-card p-3 rounded-lg">
                               <p className="text-secondary-white text-sm">Make-up Sessions</p>
                               <p className="font-semibold text-primary-white">{student.makeupSessions}</p>
                             </div>
