@@ -167,6 +167,7 @@ interface CoachProfile {
   archivedTerms: any[]
   completedMakeupSessions: any[]
   makeupSessions?: MakeupSession[]
+  archivedSessions?: AttendanceRecord[]
 }
 
 // Helper function to merge profiles - keeps local data and merges with cloud data
@@ -441,6 +442,7 @@ const TennisTracker = React.memo(function TennisTracker() {
     archivedTerms: [],
     completedMakeupSessions: [],
     makeupSessions: [],
+    archivedSessions: [],
   }
 
   const updateProfile = (updatedProfile: CoachProfile) => {
@@ -1909,9 +1911,12 @@ const TennisTracker = React.memo(function TennisTracker() {
 
     const csvContent = csvData
       .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
-      .join("\n")
+      .join("\r\n") // Windows line endings for Excel compatibility
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    // Add UTF-8 BOM for Excel compatibility
+    const csvWithBOM = "\uFEFF" + csvContent
+
+    const blob = new Blob([csvWithBOM], { type: "text/csv;charset=utf-8;" })
     const link = document.createElement("a")
     const url = URL.createObjectURL(blob)
     link.setAttribute("href", url)
@@ -2154,10 +2159,13 @@ const TennisTracker = React.memo(function TennisTracker() {
     try {
       const csvContent = csvData
         .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
-        .join("\n")
+        .join("\r\n") // Windows line endings for Excel compatibility
 
-      const dataBlob = new Blob([csvContent], { 
-        type: "text/csv;charset=utf-8" 
+      // Add UTF-8 BOM for Excel compatibility
+      const csvWithBOM = "\uFEFF" + csvContent
+
+      const dataBlob = new Blob([csvWithBOM], { 
+        type: "text/csv;charset=utf-8;" 
       })
       const url = URL.createObjectURL(dataBlob)
       const link = document.createElement("a")
