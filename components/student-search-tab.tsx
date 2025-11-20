@@ -227,7 +227,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
   const organizedSessions = useMemo(() => {
     if (!profileData) return { sections: [], stats: { total: 0, present: 0, absent: 0, canceled: 0 } }
     
-    let sessions = getAllSessions
+    let sessions = [...getAllSessions]
 
     // Apply search filter
     if (sessionSearchTerm.trim()) {
@@ -273,7 +273,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
     }
 
     // Sort sessions
-    sessions.sort((a, b) => {
+    const sortedSessions = [...sessions].sort((a, b) => {
       const dateA = parseISO(a.date).getTime()
       const dateB = parseISO(b.date).getTime()
       if (sessionSortBy === "newest") {
@@ -282,6 +282,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
         return dateA - dateB
       }
     })
+    sessions = sortedSessions
 
     // Organize into sections based on view mode
     const sections: Array<{ key: string; title: string; sessions: AttendanceRecord[] }> = []
