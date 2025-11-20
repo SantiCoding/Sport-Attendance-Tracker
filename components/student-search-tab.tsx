@@ -600,7 +600,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
   }
 
   const toggleSectionExpansion = (sectionKey: string) => {
-    setExpandedSections(prev => {
+    setExpandedSections((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(sectionKey)) {
         newSet.delete(sectionKey)
