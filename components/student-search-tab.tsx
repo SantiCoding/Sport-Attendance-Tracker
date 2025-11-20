@@ -13,7 +13,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Search, User, Users, Edit, Trash2, Download, CalendarDays, Clock, Archive, CheckSquare, Square, X, BarChart3 } from "lucide-react"
 import { StudentDialog } from "@/components/student-dialog"
-import { useToast } from "@/components/toast"
+import { useToast } from "@/toast"
 import { format, startOfWeek, endOfWeek, isWithinInterval, parseISO, startOfDay, endOfDay, addDays, subDays } from "date-fns"
 import { cn } from "@/lib/utils"
 
@@ -195,7 +195,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
   }
 
   const toggleStudentExpansion = (studentId: string) => {
-    setExpandedStudents(prev => {
+    setExpandedStudents((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(studentId)) {
         newSet.delete(studentId)
@@ -580,7 +580,7 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
 
   // Bulk selection helpers
   const toggleSessionSelection = (sessionId: string) => {
-    setSelectedSessions(prev => {
+    setSelectedSessions((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(sessionId)) {
         newSet.delete(sessionId)
@@ -658,200 +658,74 @@ export function StudentSearchTab({ profileData, updateProfile, isActive }: Stude
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label className="text-secondary-white">Search Students</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tertiary-white" />
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name or notes..."
-                  className="glass-input text-primary-white placeholder:text-tertiary-white pl-10"
-                />
-              </div>
-            </div>
-            <div>
-              <Label className="text-secondary-white">Sort By</Label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="glass-input text-primary-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="glass-dropdown">
-                  <SelectItem value="name" className="text-primary-white">
-                    Name (A-Z)
-                  </SelectItem>
-                  <SelectItem value="remaining_sessions" className="text-primary-white">
-                    Remaining Sessions
-                  </SelectItem>
-                  <SelectItem value="makeup_sessions" className="text-primary-white">
-                    Make-up Sessions
-                  </SelectItem>
-                  <SelectItem value="prepaid_sessions" className="text-primary-white">
-                    Prepaid Sessions
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-secondary-white">Filter By</Label>
-              <Select value={filterBy} onValueChange={setFilterBy}>
-                <SelectTrigger className="glass-input text-primary-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="glass-dropdown">
-                  <SelectItem value="all_students" className="text-primary-white">
-                    All Students
-                  </SelectItem>
-                  <SelectItem value="active" className="text-primary-white">
-                    Active (Has Sessions)
-                  </SelectItem>
-                  <SelectItem value="inactive" className="text-primary-white">
-                    Inactive (No Sessions)
-                  </SelectItem>
-                  <SelectItem value="has_makeups" className="text-primary-white">
-                    Has Make-ups
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-secondary-white">
-              Showing {filteredAndSortedStudents.length} of {(profileData.students ?? []).length} students
-            </p>
-            <StudentDialog profileData={profileData} onUpdateProfile={updateProfile}>
-              <Button className="glass-button text-primary-white">
-                <User className="h-4 w-4 mr-2" />
-                Add Student
-              </Button>
-            </StudentDialog>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Students List */}
-      <div className="space-y-3">
-        {filteredAndSortedStudents.length === 0 ? (
-          <Card className="glass-card">
-            <CardContent className="p-6 text-center">
-              <p className="text-secondary-white">
-                {searchTerm || filterBy !== "all_students"
-                  ? "No students match your search criteria"
-                  : "No students found"}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredAndSortedStudents.map((student) => {
-            const studentGroups = getStudentGroups(student.id)
-
-            return (
-              <Card key={student.id} className="glass-card">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 cursor-pointer" onClick={() => toggleStudentExpansion(student.id)}>
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                          <User className="h-5 w-5 text-blue-400" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-primary-white text-lg">{student.name}</h3>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {studentGroups.map((group) => (
-                              <Badge 
-                                key={group.id} 
-                                className="text-xs glass-card text-primary-white border-white/20 hover:bg-white/10 transition-colors"
-                              >
-                                {group.name}
-                              </Badge>
-                            ))}
-                            {studentGroups.length === 0 && (
-                              <span className="text-xs text-tertiary-white">No groups assigned</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {expandedStudents.has(student.id) && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                          <div className="glass-card p-3">
-                            <p className="text-secondary-white text-sm">Prepaid Sessions</p>
-                            <p className="font-semibold text-primary-white">{student.prepaidSessions}</p>
-                          </div>
-                          <div className="glass-card p-3">
-                            <p className="text-secondary-white text-sm">Remaining Sessions</p>
-                            <p className="font-semibold text-primary-white">{student.remainingSessions}</p>
-                          </div>
-                          <div className="glass-card p-3">
-                            <p className="text-secondary-white text-sm">Make-up Sessions</p>
-                            <p className="font-semibold text-primary-white">{student.makeupSessions}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {expandedStudents.has(student.id) && (
-                        <>
-                          {student.notes && (
-                            <div className="mb-3">
-                              <p className="text-secondary-white text-sm mb-1">Notes:</p>
-                              <p className="text-primary-white text-sm bg-white/5 rounded p-2">{student.notes}</p>
-                            </div>
-                          )}
-
-                          {studentGroups.length > 0 && (
-                            <div>
-                              <p className="text-secondary-white text-sm mb-2 flex items-center gap-1">
-                                <Users className="h-3 w-3" />
-                                Groups ({studentGroups.length})
-                              </p>
-                              <div className="flex flex-wrap gap-2">
-                                {studentGroups.map((group) => (
-                                  <Badge key={group.id} className="glass-card text-primary-white border-white/20">
-                                    {group.name}
-                                    {group.dayOfWeek && group.time && (
-                                      <span className="ml-1 opacity-75">
-                                        • {formatDayDisplay(group.dayOfWeek)} {group.time}
-                                      </span>
-                                    )}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 ml-4">
-                      <StudentDialog profileData={profileData} onUpdateProfile={updateProfile} student={student}>
-                        <Button 
-                          size="sm" 
-                          className="glass-button text-primary-white"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </StudentDialog>
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          console.log("🗑️ Delete button clicked - using glass-delete-button class");
-                          deleteStudent(student.id);
-                        }}
-                        className="glass-delete-button"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tertiary-white" />
+                    <Input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Search by name or notes..."
+                      className="glass-input text-primary-white placeholder:text-tertiary-white pl-10"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            )
-          })
-        )}
-      </div>
+                </div>
+                <div>
+                  <Label className="text-secondary-white">Sort By</Label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="glass-input text-primary-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="glass-dropdown">
+                      <SelectItem value="name" className="text-primary-white">
+                        Name (A-Z)
+                      </SelectItem>
+                      <SelectItem value="remaining_sessions" className="text-primary-white">
+                        Remaining Sessions
+                      </SelectItem>
+                      <SelectItem value="makeup_sessions" className="text-primary-white">
+                        Make-up Sessions
+                      </SelectItem>
+                      <SelectItem value="prepaid_sessions" className="text-primary-white">
+                        Prepaid Sessions
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-secondary-white">Filter By</Label>
+                  <Select value={filterBy} onValueChange={setFilterBy}>
+                    <SelectTrigger className="glass-input text-primary-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="glass-dropdown">
+                      <SelectItem value="all_students" className="text-primary-white">
+                        All Students
+                      </SelectItem>
+                      <SelectItem value="active" className="text-primary-white">
+                        Active (Has Sessions)
+                      </SelectItem>
+                      <SelectItem value="inactive" className="text-primary-white">
+                        Inactive (No Sessions)
+                      </SelectItem>
+                      <SelectItem value="has_makeups" className="text-primary-white">
+                        Has Make-ups
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-secondary-white">
+                  Showing {filteredAndSortedStudents.length} of {(profileData.students ?? []).length} students
+                </p>
+                <StudentDialog profileData={profileData} onUpdateProfile={updateProfile}>
+                  <Button className="glass-button text-primary-white">
+                    <User className="h-4 w-4 mr-2" />
+                    Add Student
+                  </Button>
+                </StudentDialog>
+              </div>
             </>
           ) : (
-            // Session View
             <>
               {/* Quick Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
