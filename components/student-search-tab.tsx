@@ -69,7 +69,7 @@ interface StudentSearchTabProps {
   isActive: boolean
 }
 
-export function StudentSearchTab({ profileData, updateProfile, isActive }: StudentSearchTabProps): JSX.Element {
+export function StudentSearchTab({ profileData, updateProfile, isActive }: StudentSearchTabProps) {
   const { toast } = useToast()
   const [viewMode, setViewMode] = useState<"students" | "sessions">("students")
   
